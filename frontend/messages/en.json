@@ -1,0 +1,42 @@
+{
+  "common": {
+    "currency": "UZS",
+    "addToCart": "Add to Cart",
+    "buyNow": "Buy Now",
+    "inStock": "In Stock",
+    "outOfStock": "Out of Stock",
+    "loading": "Loading...",
+    "error": "Error",
+    "notFound": "Not Found",
+    "backToHome": "Back to Home"
+  },
+  "nav": {
+    "home": "Home",
+    "products": "Products",
+    "about": "About",
+    "contact": "Contact",
+    "language": "Language"
+  },
+  "product": {
+    "specifications": "Specifications",
+    "description": "Description",
+    "reviews": "Reviews",
+    "price": "Price",
+    "sku": "SKU",
+    "availability": "Availability",
+    "relatedProducts": "Related Products"
+  },
+  "home": {
+    "title": "Next.js + Strapi Boilerplate",
+    "subtitle": "Full-stack application with Next.js 15 and Strapi 5 CMS",
+    "metaTitle": "Home - Next.js + Strapi Boilerplate",
+    "metaDescription": "Modern full-stack boilerplate with Next.js, Strapi CMS, PostgreSQL and multilingual support"
+  },
+  "products": {
+    "title": "Product Catalog",
+    "metaTitle": "Products - Next.js + Strapi Boilerplate",
+    "metaDescription": "Browse our product catalog",
+    "noProducts": "No products found",
+    "showingProducts": "Showing products: {count}"
+  }
+}

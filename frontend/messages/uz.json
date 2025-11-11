@@ -1,0 +1,42 @@
+{
+  "common": {
+    "currency": "so'm",
+    "addToCart": "Savatga qo'shish",
+    "buyNow": "Hozir sotib olish",
+    "inStock": "Mavjud",
+    "outOfStock": "Mavjud emas",
+    "loading": "Yuklanmoqda...",
+    "error": "Xato",
+    "notFound": "Topilmadi",
+    "backToHome": "Bosh sahifaga qaytish"
+  },
+  "nav": {
+    "home": "Bosh sahifa",
+    "products": "Mahsulotlar",
+    "about": "Biz haqimizda",
+    "contact": "Aloqa",
+    "language": "Til"
+  },
+  "product": {
+    "specifications": "Xususiyatlar",
+    "description": "Ta'rif",
+    "reviews": "Sharhlar",
+    "price": "Narx",
+    "sku": "Artikul",
+    "availability": "Mavjudligi",
+    "relatedProducts": "O'xshash mahsulotlar"
+  },
+  "home": {
+    "title": "Next.js + Strapi Boilerplate",
+    "subtitle": "Next.js 15 va Strapi 5 CMS bilan Full-stack ilova",
+    "metaTitle": "Bosh sahifa - Next.js + Strapi Boilerplate",
+    "metaDescription": "Next.js, Strapi CMS, PostgreSQL va ko'p tillilik bilan zamonaviy full-stack boilerplate"
+  },
+  "products": {
+    "title": "Mahsulotlar katalogi",
+    "metaTitle": "Mahsulotlar - Next.js + Strapi Boilerplate",
+    "metaDescription": "Bizning mahsulotlar katalogini ko'ring",
+    "noProducts": "Mahsulotlar topilmadi",
+    "showingProducts": "Ko'rsatilgan mahsulotlar: {count}"
+  }
+}
