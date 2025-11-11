@@ -2,12 +2,13 @@
 
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
+import Image from 'next/image';
 
 type Service = {
   id: number;
   title: string;
   description: string;
-  icon: string;
+  icon: string | { type: 'image'; src: string; width: number; height: number };
 };
 
 export default function ServicesSection() {
@@ -20,19 +21,19 @@ export default function ServicesSection() {
       id: 1,
       title: t('website.title'),
       description: t('website.description'),
-      icon: '🌐',
+      icon: { type: 'image', src: '/internet.svg', width: 250, height: 250 },
     },
     {
       id: 2,
       title: t('ecommerce.title'),
       description: t('ecommerce.description'),
-      icon: '🛒',
+      icon: { type: 'image', src: '/store.svg', width: 350, height: 350 },
     },
     {
       id: 3,
       title: t('webapp.title'),
       description: t('webapp.description'),
-      icon: '⚡',
+      icon: { type: 'image', src: '/atom.png', width: 200, height: 200 },
     },
   ];
 
@@ -148,8 +149,8 @@ export default function ServicesSection() {
           </div>
 
           {/* Illustration */}
-          <div className="hidden lg:flex flex-shrink-0 w-64 h-64 items-center justify-center">
-            <div className="relative w-full h-full">
+          <div className="hidden lg:flex flex-shrink-0 items-center justify-center">
+            <div className="relative" style={{ width: '350px', height: '350px' }}>
               {services.map((service, index) => (
                 <div
                   key={service.id}
@@ -163,8 +164,25 @@ export default function ServicesSection() {
                     }
                   `}
                 >
-                  <div className="text-9xl filter drop-shadow-2xl">
-                    {service.icon}
+                  <div
+                    className="filter drop-shadow-2xl flex items-center justify-center"
+                    style={
+                      typeof service.icon !== 'string'
+                        ? { width: `${service.icon.width}px`, height: `${service.icon.height}px` }
+                        : undefined
+                    }
+                  >
+                    {typeof service.icon === 'string' ? (
+                      <div className="text-9xl">{service.icon}</div>
+                    ) : (
+                      <Image
+                        src={service.icon.src}
+                        alt={service.title}
+                        width={service.icon.width}
+                        height={service.icon.height}
+                        className="object-contain"
+                      />
+                    )}
                   </div>
                 </div>
               ))}
