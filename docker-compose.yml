@@ -46,6 +46,7 @@ services:
     restart: unless-stopped
     environment:
       - NEXT_PUBLIC_STRAPI_URL=http://localhost:1337
+      - STRAPI_URL=http://backend:1337
     volumes:
       - ./frontend:/app
       - /app/node_modules

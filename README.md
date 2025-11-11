@@ -87,6 +87,107 @@ docker compose logs -f frontend
    - Go to **Settings** → **Users & Permissions Plugin** → **Roles** → **Public**
    - Enable public access to endpoints as needed
 
+## Content Revalidation Strategy
+
+This project uses **On-Demand Revalidation** to update Next.js pages when content changes in Strapi.
+
+**⚠️ Important: We do NOT use ISR (Incremental Static Regeneration).**
+
+When you update content in Strapi, it automatically triggers a webhook that invalidates the Next.js cache for affected pages.
+
+**See [REVALIDATION.md](./REVALIDATION.md) for detailed documentation.**
+
+### Quick Setup for Revalidation
+
+The revalidation system is already configured in this boilerplate with a generated secret. To customize:
+
+1. Generate a strong secret:
+```bash
+openssl rand -base64 32
+```
+
+2. Update in both `.env` files:
+```bash
+# Root .env (for Strapi)
+NEXTJS_URL=http://frontend:3000
+REVALIDATION_SECRET=your_generated_secret
+ENABLE_WEBHOOKS=true
+
+# Frontend: frontend/.env.local
+REVALIDATION_SECRET=your_generated_secret
+```
+
+3. Restart services:
+```bash
+docker compose restart
+```
+
+4. Test by editing content in Strapi Admin Panel and checking logs:
+```bash
+docker compose logs -f frontend backend
+```
+
+You should see:
+```
+backend   | [Webhooks] ✅ Revalidated Next.js for product update
+frontend  | [Revalidation] ✅ Revalidated /products/your-slug
+```
+
+## Internationalization (i18n)
+
+This project supports **3 languages** out of the box:
+- 🇷🇺 **Russian (ru)** - Default
+- 🇺🇿 **Uzbek (uz)** - O'zbekcha
+- 🇬🇧 **English (en)**
+
+**Key Features:**
+- ✅ Locale-based URL routing (`/ru/`, `/uz/`, `/en/`)
+- ✅ Language switcher component (top-right corner)
+- ✅ Localized UI translations via next-intl
+- ✅ Localized content from Strapi i18n plugin
+- ✅ SEO-optimized with hreflang tags
+- ✅ Automatic cache revalidation for all locales
+
+**See [I18N.md](./I18N.md) for complete documentation.**
+
+### Quick i18n Guide
+
+**URL Structure:**
+```
+http://localhost:3000/ru          → Russian home page
+http://localhost:3000/uz          → Uzbek home page
+http://localhost:3000/en          → English home page
+http://localhost:3000/ru/products → Russian products
+```
+
+**Using Translations in Components:**
+
+Server Components:
+```typescript
+import { getTranslations } from 'next-intl/server';
+
+const t = await getTranslations('common');
+<button>{t('addToCart')}</button>
+```
+
+Client Components:
+```typescript
+'use client';
+import { useTranslations } from 'next-intl';
+
+const t = useTranslations('common');
+<button>{t('addToCart')}</button>
+```
+
+**Fetching Localized Content:**
+```typescript
+// Always include locale parameter when fetching from Strapi
+const res = await fetch(
+  `${process.env.STRAPI_URL}/api/products?locale=${locale}&populate=*`,
+  { cache: 'force-cache' }
+);
+```
+
 ## Development Workflow
 
 ### Hot-Reload
