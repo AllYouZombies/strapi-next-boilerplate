@@ -1,0 +1,385 @@
+# Strapi + Next.js Boilerplate
+
+A production-ready full-stack boilerplate with Strapi 5 CMS (backend) and Next.js 15 (frontend), fully containerized with Docker.
+
+## Stack
+
+- **Backend**: Strapi 5.30.1 (Node.js 22 LTS)
+- **Frontend**: Next.js 15.5 with App Router & TypeScript
+- **Database**: PostgreSQL 18
+- **Styling**: Tailwind CSS
+- **Containerization**: Docker & Docker Compose
+
+## Features
+
+- Multi-stage Docker builds for development and production
+- Hot-reload in development mode for both frontend and backend
+- PostgreSQL with persistent volumes
+- TypeScript support
+- CORS configured for frontend-backend communication
+- Health checks for all services
+- Security: non-root users, environment variables
+
+## System Requirements
+
+- Docker 24.0+
+- Docker Compose 2.20+
+- (Optional) Node.js 22.x for local development
+
+## Project Structure
+
+```
+project-root/
+├── frontend/          # Next.js 15 application
+│   ├── Dockerfile     # Multi-stage: development + production
+│   ├── app/           # Next.js App Router
+│   └── ...
+├── backend/           # Strapi 5 CMS
+│   ├── Dockerfile     # Multi-stage: development + production
+│   ├── config/        # Strapi configuration
+│   └── ...
+├── docker-compose.yml # Development environment (hot-reload)
+├── .env               # Environment variables (DO NOT commit!)
+└── .env.example       # Example environment variables
+```
+
+## Quick Start
+
+### 1. Clone and Setup Environment
+
+```bash
+# Copy environment variables
+cp .env.example .env
+
+# Generate secure secrets (IMPORTANT for production!)
+openssl rand -base64 32  # Run 6 times and replace values in .env
+```
+
+Edit `.env` and replace all `generate_random_string_here` values with generated secrets.
+
+### 2. Start Development Environment
+
+```bash
+# Start all services (PostgreSQL, Strapi, Next.js)
+docker compose up -d
+
+# View logs
+docker compose logs -f
+
+# View specific service logs
+docker compose logs -f backend
+docker compose logs -f frontend
+```
+
+**First startup may take 3-5 minutes** to build images and install dependencies.
+
+### 3. Access Services
+
+- **Frontend**: http://localhost:3000
+- **Strapi Admin**: http://localhost:1337/admin
+- **Strapi API**: http://localhost:1337/api
+
+### 4. First-time Strapi Setup
+
+1. Navigate to http://localhost:1337/admin
+2. Create your admin account (email, password)
+3. Configure API permissions:
+   - Go to **Settings** → **Users & Permissions Plugin** → **Roles** → **Public**
+   - Enable public access to endpoints as needed
+
+## Development Workflow
+
+### Hot-Reload
+
+Both frontend and backend support hot-reload in development mode:
+
+- **Frontend**: Changes to files in `frontend/` automatically refresh the browser
+- **Backend**: Changes to files in `backend/` automatically restart Strapi
+
+### Rebuild After Dependencies Change
+
+```bash
+# Rebuild after adding npm packages
+docker compose up -d --build
+
+# Or rebuild specific service
+docker compose up -d --build backend
+docker compose up -d --build frontend
+```
+
+### Stop Services
+
+```bash
+# Stop containers (keep data)
+docker compose down
+
+# Stop and remove all data (including database)
+docker compose down -v
+```
+
+### View Container Logs
+
+```bash
+# All services
+docker compose logs -f
+
+# Specific service
+docker compose logs -f backend
+docker compose logs -f postgres
+```
+
+### Execute Commands in Container
+
+```bash
+# Backend shell
+docker compose exec backend sh
+
+# Frontend shell
+docker compose exec frontend sh
+
+# Database shell
+docker compose exec postgres psql -U strapi -d strapi
+```
+
+## Production Build
+
+Docker Compose is for **development only**. For production, build images separately:
+
+### Build Production Images
+
+```bash
+# Build backend production image
+docker build -t my-strapi:latest ./backend
+
+# Build frontend production image
+docker build -t my-nextjs:latest ./frontend
+```
+
+By default, `docker build` creates production images (optimized, minimal size).
+
+### Run Production Images Locally
+
+```bash
+# Run PostgreSQL
+docker run -d \
+  --name postgres \
+  -e POSTGRES_USER=strapi \
+  -e POSTGRES_PASSWORD=your_secure_password \
+  -e POSTGRES_DB=strapi \
+  -v postgres-data:/var/lib/postgresql/data \
+  postgres:18-alpine
+
+# Run Strapi backend
+docker run -d \
+  --name backend \
+  -p 1337:1337 \
+  --env-file .env \
+  --link postgres:postgres \
+  my-strapi:latest
+
+# Run Next.js frontend
+docker run -d \
+  --name frontend \
+  -p 3000:3000 \
+  -e NEXT_PUBLIC_STRAPI_URL=http://localhost:1337 \
+  my-nextjs:latest
+```
+
+### Push to Registry
+
+```bash
+# Login to Docker Hub or your registry
+docker login
+
+# Tag images
+docker tag my-strapi:latest yourusername/strapi:1.0.0
+docker tag my-nextjs:latest yourusername/nextjs:1.0.0
+
+# Push images
+docker push yourusername/strapi:1.0.0
+docker push yourusername/nextjs:1.0.0
+```
+
+## Docker Architecture
+
+### Multi-Stage Builds
+
+Both `Dockerfile`s use multi-stage builds with separate targets:
+
+**Development Target** (`target: development`):
+- Used by `docker-compose.yml`
+- Includes dev dependencies
+- Hot-reload enabled
+- Volume mounts for live code changes
+
+**Production Target** (default):
+- Minimal image size
+- Only production dependencies
+- Optimized build output
+- Non-root user for security
+
+### Build Targets
+
+```bash
+# Build specific target
+docker build --target development -t my-app:dev .
+docker build --target production -t my-app:prod .
+
+# Default builds production
+docker build -t my-app:prod .
+```
+
+## Environment Variables
+
+See `.env.example` for all available variables.
+
+### Required Variables
+
+```env
+# Database
+POSTGRES_USER=strapi
+POSTGRES_PASSWORD=change_me_in_production
+POSTGRES_DB=strapi
+
+# Strapi (generate with: openssl rand -base64 32)
+APP_KEYS=required
+API_TOKEN_SALT=required
+ADMIN_JWT_SECRET=required
+TRANSFER_TOKEN_SALT=required
+JWT_SECRET=required
+ENCRYPTION_KEY=required
+
+# Frontend
+NEXT_PUBLIC_STRAPI_URL=http://localhost:1337
+```
+
+## Troubleshooting
+
+### Port Already in Use
+
+```bash
+# Check what's using port 3000 or 1337
+lsof -i :3000
+lsof -i :1337
+
+# Stop conflicting services or change ports in docker-compose.yml
+```
+
+### Database Connection Issues
+
+```bash
+# Check if PostgreSQL is healthy
+docker compose ps
+
+# View PostgreSQL logs
+docker compose logs postgres
+
+# Recreate database volume
+docker compose down -v
+docker compose up -d
+```
+
+### Permission Errors
+
+```bash
+# Fix ownership (if needed)
+sudo chown -R $USER:$USER backend frontend
+```
+
+### Fresh Start
+
+```bash
+# Complete reset
+docker compose down -v
+docker system prune -a
+docker compose up -d --build
+```
+
+## Security Notes
+
+1. **Never commit `.env` to git** - it's already in `.gitignore`
+2. **Generate strong secrets** for production using `openssl rand -base64 32`
+3. **Change default passwords** in `.env` before deploying
+4. **Use HTTPS** in production (configure reverse proxy like Nginx)
+5. **Update dependencies** regularly for security patches
+
+## Package Updates
+
+```bash
+# Update backend dependencies
+cd backend && npm update
+
+# Update frontend dependencies
+cd frontend && npm update
+
+# Rebuild containers
+docker compose up -d --build
+```
+
+## API Usage Example
+
+### Frontend Integration
+
+The boilerplate includes an example in `frontend/app/page.tsx`:
+
+```typescript
+const response = await fetch(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api`);
+const data = await response.json();
+```
+
+### Create Content Type in Strapi
+
+1. Go to **Content-Type Builder** in Strapi admin
+2. Create a new Collection Type (e.g., "Article")
+3. Add fields
+4. Save and restart Strapi (automatic in dev mode)
+5. Add content in **Content Manager**
+6. Set permissions in **Settings** → **Roles**
+
+### Fetch Data from Frontend
+
+```typescript
+const response = await fetch('http://localhost:1337/api/articles?populate=*');
+const { data } = await response.json();
+```
+
+## Performance
+
+### Development Mode
+
+- Frontend: ~50MB RAM, instant hot-reload
+- Backend: ~150MB RAM, auto-restart on changes
+- Total: ~300MB RAM for full stack
+
+### Production Mode
+
+- Frontend: Next.js standalone ~200-300MB image
+- Backend: Strapi optimized ~300-400MB image
+- Minimal dependencies, secure runtime
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test with `docker compose up`
+5. Submit a pull request
+
+## License
+
+MIT License - feel free to use for personal or commercial projects.
+
+## Support
+
+- [Strapi Documentation](https://docs.strapi.io/)
+- [Next.js Documentation](https://nextjs.org/docs)
+- [Docker Documentation](https://docs.docker.com/)
+
+---
+
+**Built with**:
+- Strapi 5.30.1
+- Next.js 15.5
+- PostgreSQL 18
+- Node.js 22 LTS
+- Docker & Docker Compose
