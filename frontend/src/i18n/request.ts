@@ -34,13 +34,17 @@ export function getLocaleFlag(locale: Locale): string {
 }
 
 // next-intl configuration
-export default getRequestConfig(async ({ locale }) => {
+export default getRequestConfig(async ({ requestLocale }) => {
+  // Get the locale from the request
+  let locale = await requestLocale;
+
   // Validate that the incoming `locale` parameter is valid
-  if (!isValidLocale(locale)) {
+  if (!locale || !isValidLocale(locale)) {
     notFound();
   }
 
   return {
+    locale,
     messages: (await import(`../../messages/${locale}.json`)).default,
   };
 });
