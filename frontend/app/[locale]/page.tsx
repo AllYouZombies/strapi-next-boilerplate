@@ -66,10 +66,10 @@ export default async function HomePage({ params }: Props) {
         {/* Hero Text */}
         <div className="relative z-10 text-center px-4 -mt-24">
           <h1
-            className="text-3xl md:text-5xl lg:text-6xl text-gray-900 drop-shadow-lg leading-tight"
+            className="text-3xl md:text-5xl lg:text-6xl drop-shadow-lg leading-tight font-rubik"
             style={{
-              fontFamily: "'Igra Sans', sans-serif",
-              fontWeight: 400
+              fontWeight: 300,
+              color: '#2e2f33'
             }}
           >
             {lines.map((line, index) => (
