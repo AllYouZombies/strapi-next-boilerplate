@@ -1,0 +1,27 @@
+{
+  "kind": "singleType",
+  "collectionName": "contacts",
+  "info": {
+    "singularName": "contact",
+    "pluralName": "contacts",
+    "displayName": "Contacts"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "phone_number": {
+      "type": "string",
+      "minLength": 13,
+      "maxLength": 13,
+      "required": true,
+      "regex": "\\+998\\d{9}"
+    },
+    "telegram_link": {
+      "type": "string",
+      "required": true,
+      "regex": "t\\.me\\/\\S+"
+    }
+  }
+}

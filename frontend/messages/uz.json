@@ -42,7 +42,7 @@
   },
   "services": {
     "heading": "Biz nima yaratamiz",
-    "subheading": "Oddiy vizitka saytlaridan to biznes jarayonlarini to'liq avtomatlashtiradigan murakkab veb-ilovalargacha",
+    "subheading": "Oddiy vizitka saytlaridan to murakkab veb-ilovalargacha",
     "website": {
       "title": "Vizitka saytlar",
       "description": "Biznesingizni internetda taqdim etish uchun nafis bir sahifali saytlar"
@@ -54,17 +54,12 @@
     "webapp": {
       "title": "Veb-ilovalar",
       "description": "Murakkab biznes vazifalarini hal qilish uchun kuchli SaaS yechimlari va korporativ tizimlar"
-    },
-    "automation": {
-      "title": "Jarayonlarni avtomatlashtirish",
-      "description": "Biznes samaradorligini oshirish uchun tizimlarni integratsiyalash va oddiy operatsiyalarni avtomatlashtirish"
     }
   },
   "contact": {
     "heading": "Boshlashga tayyormisiz?",
     "subheading": "Keling birga chiroyli narsa yaratamiz",
     "discussProject": "Loyihani muhokama qilish",
-    "writeToTelegram": "Telegramda yozish",
-    "orEmail": "Yoki yozing"
+    "writeToTelegram": "Telegramda yozish"
   }
 }

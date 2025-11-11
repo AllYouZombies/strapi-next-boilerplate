@@ -2,8 +2,36 @@
 
 import { useTranslations } from 'next-intl';
 
-export default function ContactSection() {
+type ContactSectionProps = {
+  telegramLink?: string;
+  phoneNumber?: string;
+};
+
+export default function ContactSection({
+  telegramLink,
+  phoneNumber,
+}: ContactSectionProps) {
   const t = useTranslations('contact');
+
+  // Ensure telegram link has protocol
+  const formatTelegramLink = (link: string | undefined) => {
+    if (!link) return 'https://t.me/yourusername';
+    if (link.startsWith('http://') || link.startsWith('https://')) {
+      return link;
+    }
+    // If link starts with t.me/, add https://
+    if (link.startsWith('t.me/')) {
+      return `https://${link}`;
+    }
+    // If link is just username, add full URL
+    if (!link.includes('/')) {
+      return `https://t.me/${link}`;
+    }
+    return `https://${link}`;
+  };
+
+  const telegram = formatTelegramLink(telegramLink);
+  const phone = phoneNumber || '+998901234567';
 
   return (
     <section className="relative w-full min-h-screen flex items-center justify-center py-20 px-4">
@@ -20,9 +48,9 @@ export default function ContactSection() {
 
         {/* CTA Buttons */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6">
-          {/* Primary Button - Discuss Project */}
+          {/* Primary Button - Discuss Project (Phone Call) */}
           <a
-            href="mailto:hello@example.com"
+            href={`tel:${phone}`}
             className="
               group relative w-full sm:w-auto
               px-8 py-4
@@ -46,7 +74,7 @@ export default function ContactSection() {
 
           {/* Secondary Button - Telegram */}
           <a
-            href="https://t.me/yourusername"
+            href={telegram}
             target="_blank"
             rel="noopener noreferrer"
             className="
@@ -74,13 +102,6 @@ export default function ContactSection() {
               {t('writeToTelegram')}
             </span>
           </a>
-        </div>
-
-        {/* Optional: Contact Info */}
-        <div className="mt-16 pt-16 border-t border-gray-200">
-          <p className="text-gray-500 font-light font-rubik text-sm">
-            {t('orEmail')} <a href="mailto:hello@example.com" className="text-[#2e2f33] hover:underline transition-all">hello@example.com</a>
-          </p>
         </div>
       </div>
     </section>

@@ -34,12 +34,6 @@ export default function ServicesSection() {
       description: t('webapp.description'),
       icon: '⚡',
     },
-    {
-      id: 4,
-      title: t('automation.title'),
-      description: t('automation.description'),
-      icon: '🤖',
-    },
   ];
 
   // Start auto-rotation timer
@@ -69,14 +63,14 @@ export default function ServicesSection() {
   };
 
   return (
-    <section className="relative w-full min-h-screen flex items-center justify-center py-20 px-4">
+    <section className="relative w-full min-h-screen flex items-center justify-center py-20 px-4 bg-[#2e2f33]">
       <div className="max-w-7xl w-full grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16">
         {/* Left: Title and Description */}
         <div className="lg:col-span-4 flex flex-col justify-center">
-          <h2 className="text-4xl md:text-5xl font-light text-[#2e2f33] mb-4 font-rubik">
+          <h2 className="text-4xl md:text-5xl font-light text-white mb-4 font-rubik">
             {t('heading')}
           </h2>
-          <p className="text-lg text-gray-600 font-light font-rubik">
+          <p className="text-lg text-gray-300 font-light font-rubik">
             {t('subheading')}
           </p>
         </div>
@@ -108,8 +102,8 @@ export default function ServicesSection() {
                     text-2xl font-light transition-all duration-500
                     ${
                       index === activeIndex
-                        ? 'bg-[#2e2f33] text-white'
-                        : 'bg-gray-200 text-gray-400'
+                        ? 'bg-white text-[#2e2f33]'
+                        : 'bg-gray-700 text-gray-500'
                     }
                   `}
                 >
@@ -124,8 +118,8 @@ export default function ServicesSection() {
                       transition-colors duration-500
                       ${
                         index === activeIndex
-                          ? 'text-[#2e2f33]'
-                          : 'text-gray-400'
+                          ? 'text-white'
+                          : 'text-gray-500'
                       }
                     `}
                   >
@@ -140,8 +134,8 @@ export default function ServicesSection() {
                         absolute inset-0
                         ${
                           index === activeIndex
-                            ? 'text-gray-600 opacity-100'
-                            : 'text-gray-400 opacity-0'
+                            ? 'text-gray-300 opacity-100'
+                            : 'text-gray-600 opacity-0'
                         }
                       `}
                     >
@@ -189,8 +183,8 @@ export default function ServicesSection() {
               h-1 rounded-full transition-all duration-500
               ${
                 index === activeIndex
-                  ? 'w-12 bg-[#2e2f33]'
-                  : 'w-8 bg-gray-300'
+                  ? 'w-12 bg-white'
+                  : 'w-8 bg-gray-600'
               }
             `}
             aria-label={`Go to service ${index + 1}`}

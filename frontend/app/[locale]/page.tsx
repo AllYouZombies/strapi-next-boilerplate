@@ -25,6 +25,26 @@ export default async function HomePage({ params }: Props) {
   const heroText = t('heroText');
   const lines = heroText.split('\n');
 
+  // Fetch contact data from Strapi
+  let contactData = null;
+  try {
+    const res = await fetch(
+      `${process.env.STRAPI_URL}/api/contact?locale=${locale}`,
+      {
+        cache: 'force-cache',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    if (res.ok) {
+      const data = await res.json();
+      contactData = data.data;
+    }
+  } catch (error) {
+    console.error('Failed to fetch contact data:', error);
+  }
+
   return (
     <>
       <div className="relative w-full min-h-screen flex items-center justify-center overflow-hidden">
@@ -90,7 +110,10 @@ export default async function HomePage({ params }: Props) {
       <ServicesSection />
 
       {/* Contact Section */}
-      <ContactSection />
+      <ContactSection
+        telegramLink={contactData?.telegram_link}
+        phoneNumber={contactData?.phone_number}
+      />
     </>
   );
 }
