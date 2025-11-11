@@ -39,5 +39,32 @@
     "metaDescription": "Browse our product catalog",
     "noProducts": "No products found",
     "showingProducts": "Showing products: {count}"
+  },
+  "services": {
+    "heading": "What we create",
+    "subheading": "From simple landing pages to complex web applications with full business process automation",
+    "website": {
+      "title": "Landing Pages",
+      "description": "Elegant single-page websites to showcase your business online"
+    },
+    "ecommerce": {
+      "title": "E-commerce Stores",
+      "description": "Full-featured e-commerce platforms with catalog and order management systems"
+    },
+    "webapp": {
+      "title": "Web Applications",
+      "description": "Powerful SaaS solutions and enterprise systems for solving complex business challenges"
+    },
+    "automation": {
+      "title": "Process Automation",
+      "description": "System integration and automation of routine operations to improve business efficiency"
+    }
+  },
+  "contact": {
+    "heading": "Ready to start?",
+    "subheading": "Let's do something beautiful together",
+    "discussProject": "Discuss Project",
+    "writeToTelegram": "Write to Telegram",
+    "orEmail": "Or email us at"
   }
 }
