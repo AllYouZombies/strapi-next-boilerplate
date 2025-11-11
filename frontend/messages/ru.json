@@ -30,7 +30,8 @@
     "title": "Next.js + Strapi Boilerplate",
     "subtitle": "Full-stack приложение с Next.js 15 и Strapi 5 CMS",
     "metaTitle": "Главная - Next.js + Strapi Boilerplate",
-    "metaDescription": "Современный full-stack boilerplate с Next.js, Strapi CMS, PostgreSQL и мультиязычностью"
+    "metaDescription": "Современный full-stack boilerplate с Next.js, Strapi CMS, PostgreSQL и мультиязычностью",
+    "heroText": "Айда сделаем\nчто-то\nкрасивое"
   },
   "products": {
     "title": "Каталог товаров",

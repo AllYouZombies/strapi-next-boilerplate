@@ -30,7 +30,8 @@
     "title": "Next.js + Strapi Boilerplate",
     "subtitle": "Next.js 15 va Strapi 5 CMS bilan Full-stack ilova",
     "metaTitle": "Bosh sahifa - Next.js + Strapi Boilerplate",
-    "metaDescription": "Next.js, Strapi CMS, PostgreSQL va ko'p tillilik bilan zamonaviy full-stack boilerplate"
+    "metaDescription": "Next.js, Strapi CMS, PostgreSQL va ko'p tillilik bilan zamonaviy full-stack boilerplate",
+    "heroText": "Keling chiroyli\nnarsa\nyaratamiz"
   },
   "products": {
     "title": "Mahsulotlar katalogi",
