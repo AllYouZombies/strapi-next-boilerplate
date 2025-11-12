@@ -4,13 +4,33 @@ import { useEffect, useState } from 'react';
 import LanguageSwitcher from './LanguageSwitcher';
 
 export default function Header() {
-  const [isScrolled, setIsScrolled] = useState(false);
+  const [hasBackground, setHasBackground] = useState(false);
+  const [hasShadow, setHasShadow] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
       // Считаем что Hero блок занимает примерно 100vh (высоту экрана)
       const heroHeight = window.innerHeight;
-      setIsScrolled(window.scrollY > heroHeight * 0.8);
+      const scrollY = window.scrollY;
+
+      // Проверяем, находимся ли мы за пределами Hero блока (ровно на 100%)
+      const passedHero = scrollY >= heroHeight;
+
+      // Фон появляется после Hero блока и остается всегда
+      setHasBackground(passedHero);
+
+      // Проверяем, находимся ли мы над Contact Section
+      const contactSection = document.getElementById('contact-section');
+      let overContactSection = false;
+
+      if (contactSection) {
+        const contactTop = contactSection.offsetTop;
+        const contactBottom = contactTop + contactSection.offsetHeight;
+        overContactSection = scrollY >= contactTop - 100 && scrollY <= contactBottom;
+      }
+
+      // Показываем тень только если прошли Hero блок и НЕ находимся над Contact Section
+      setHasShadow(passedHero && !overContactSection);
     };
 
     window.addEventListener('scroll', handleScroll);
@@ -19,8 +39,8 @@ export default function Header() {
 
   return (
     <header
-      className={`w-full sticky top-0 z-50 transition-all duration-300 ${
-        isScrolled ? 'bg-[#f7f6f3] shadow-md' : 'bg-transparent'
+      className={`w-full sticky top-0 z-50 ${
+        hasBackground ? 'bg-[#f7f6f3]' : 'bg-transparent'
       }`}
     >
       <div className="container mx-auto px-4 py-4 flex justify-end items-center">

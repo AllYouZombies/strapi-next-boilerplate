@@ -5,7 +5,11 @@ import { usePathname, useRouter } from 'next/navigation';
 import { locales, getLocaleName, getLocaleFlag, type Locale } from '@/src/i18n/request';
 import { useState, useEffect, useRef } from 'react';
 
-export default function LanguageSwitcher() {
+type LanguageSwitcherProps = {
+  isScrolled?: boolean;
+};
+
+export default function LanguageSwitcher({ isScrolled = false }: LanguageSwitcherProps) {
   const locale = useLocale() as Locale;
   const pathname = usePathname();
   const router = useRouter();

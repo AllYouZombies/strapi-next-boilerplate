@@ -127,7 +127,7 @@ export default function ServicesSection() {
                     {service.title}
                   </h3>
                   {/* Fixed height container for description */}
-                  <div className="h-16 relative overflow-hidden">
+                  <div className="h-20 relative overflow-hidden">
                     <p
                       className={`
                         text-base font-light font-rubik

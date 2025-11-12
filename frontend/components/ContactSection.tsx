@@ -34,7 +34,7 @@ export default function ContactSection({
   const phone = phoneNumber || '+998901234567';
 
   return (
-    <section className="relative w-full min-h-screen flex items-center justify-center py-20 px-4">
+    <section id="contact-section" className="relative w-full min-h-screen flex items-center justify-center py-20 px-4">
       <div className="max-w-4xl w-full text-center">
         {/* Heading */}
         <h2 className="text-5xl md:text-6xl lg:text-7xl font-light text-[#2e2f33] mb-6 font-rubik">
