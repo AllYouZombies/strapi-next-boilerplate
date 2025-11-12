@@ -28,7 +28,7 @@ export default {
 
     // Subscribe to lifecycle events for all content types
     // Add your content types here as you create them
-    const contentTypes = ['product', 'category', 'page', 'blog-post'];
+    const contentTypes = ['product', 'category', 'page', 'blog-post', 'main-page-content'];
 
     contentTypes.forEach((contentType) => {
       const modelName = `api::${contentType}.${contentType}`;

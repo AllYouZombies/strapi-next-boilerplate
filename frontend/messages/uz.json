@@ -61,5 +61,9 @@
     "subheading": "Keling birga chiroyli narsa yaratamiz",
     "discussProject": "Loyihani muhokama qilish",
     "writeToTelegram": "Telegramda yozish"
+  },
+  "about": {
+    "heading": "Biz haqimizda",
+    "noContent": "Kompaniya haqida ma'lumot tez orada paydo bo'ladi"
   }
 }

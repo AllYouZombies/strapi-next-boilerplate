@@ -61,5 +61,9 @@
     "subheading": "Let's do something beautiful together",
     "discussProject": "Discuss Project",
     "writeToTelegram": "Write to Telegram"
+  },
+  "about": {
+    "heading": "About Us",
+    "noContent": "Information about the company will appear soon"
   }
 }

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import Image from 'next/image';
+import AboutSection from '@/components/AboutSection';
 import ServicesSection from '@/components/ServicesSection';
 import ContactSection from '@/components/ContactSection';
 
@@ -43,6 +44,26 @@ export default async function HomePage({ params }: Props) {
     }
   } catch (error) {
     console.error('Failed to fetch contact data:', error);
+  }
+
+  // Fetch main page content from Strapi
+  let mainPageContent = null;
+  try {
+    const res = await fetch(
+      `${process.env.STRAPI_URL}/api/main-page-content?locale=${locale}`,
+      {
+        cache: 'force-cache',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    if (res.ok) {
+      const data = await res.json();
+      mainPageContent = data.data;
+    }
+  } catch (error) {
+    console.error('Failed to fetch main page content:', error);
   }
 
   return (
@@ -105,6 +126,9 @@ export default async function HomePage({ params }: Props) {
           </div>
         </div>
       </div>
+
+      {/* About Section */}
+      <AboutSection content={mainPageContent?.about_us} />
 
       {/* Services Section */}
       <ServicesSection />

@@ -77,6 +77,14 @@ export async function POST(request: NextRequest) {
         }
         break;
 
+      case 'main-page-content':
+        // Main page content is shown on the home page
+        for (const locale of locales) {
+          revalidatePath(`/${locale}`);
+          console.log(`[Revalidation] ✅ Revalidated /${locale} (main-page-content)`);
+        }
+        break;
+
       default:
         // Revalidate home page for all locales
         for (const locale of locales) {

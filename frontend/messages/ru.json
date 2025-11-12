@@ -61,5 +61,9 @@
     "subheading": "Айда сделаем что-то красивое вместе",
     "discussProject": "Обсудить проект",
     "writeToTelegram": "Написать в Telegram"
+  },
+  "about": {
+    "heading": "О нас",
+    "noContent": "Информация о компании скоро появится"
   }
 }
