@@ -45,8 +45,19 @@ jobs:
           tar -czf ../${{ matrix.service }}.tar.gz ${{ matrix.exclude }} . 2>/dev/null || \
           tar -czf ../${{ matrix.service }}.tar.gz --exclude='node_modules' --exclude='.git' .
           cd ..
-          cat ${{ matrix.service }}.tar.gz | ssh dokku@${{ vars.DOKKU_HOST }} git:from-archive ${{ vars[matrix.app_var] }} --
-          echo "✅ ${{ matrix.service }} deployment completed"
+
+          # Deploy and capture output
+          OUTPUT=$(cat ${{ matrix.service }}.tar.gz | ssh dokku@${{ vars.DOKKU_HOST }} git:from-archive ${{ vars[matrix.app_var] }} -- 2>&1)
+          echo "$OUTPUT"
+
+          # Check if no changes detected and rebuild if necessary
+          if echo "$OUTPUT" | grep -q "No changes detected"; then
+            echo "⚠️  No changes detected, triggering rebuild..."
+            ssh dokku@${{ vars.DOKKU_HOST }} ps:rebuild ${{ vars[matrix.app_var] }}
+            echo "✅ ${{ matrix.service }} rebuild completed"
+          else
+            echo "✅ ${{ matrix.service }} deployment completed"
+          fi
 
   verify:
     name: Verify Deployment
