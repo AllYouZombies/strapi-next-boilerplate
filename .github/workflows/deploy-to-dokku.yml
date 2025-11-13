@@ -24,6 +24,15 @@ jobs:
           mkdir -p ~/.ssh
           ssh-keyscan -H ${{ vars.DOKKU_HOST }} >> ~/.ssh/known_hosts
 
+      - name: Configure backend port mapping (before deploy)
+        env:
+          DOKKU_HOST: ${{ vars.DOKKU_HOST }}
+          DOKKU_BACKEND_APP: ${{ vars.DOKKU_BACKEND_APP }}
+        run: |
+          # Ensure port mapping exists before deploy
+          ssh dokku@$DOKKU_HOST ports:list $DOKKU_BACKEND_APP > /dev/null 2>&1 || \
+          ssh dokku@$DOKKU_HOST ports:add $DOKKU_BACKEND_APP http:80:1337
+
       - name: Create backend tar archive
         run: |
           cd backend
@@ -61,15 +70,6 @@ jobs:
             exit $EXIT_CODE
           fi
 
-      - name: Configure backend port mapping
-        env:
-          DOKKU_HOST: ${{ vars.DOKKU_HOST }}
-          DOKKU_BACKEND_APP: ${{ vars.DOKKU_BACKEND_APP }}
-        run: |
-          # Check if port mapping exists, if not add it
-          ssh dokku@$DOKKU_HOST ports:list $DOKKU_BACKEND_APP > /dev/null 2>&1 || \
-          ssh dokku@$DOKKU_HOST ports:add $DOKKU_BACKEND_APP http:80:1337
-
   deploy-frontend:
     name: Deploy Frontend
     runs-on: ubuntu-latest
@@ -86,6 +86,15 @@ jobs:
         run: |
           mkdir -p ~/.ssh
           ssh-keyscan -H ${{ vars.DOKKU_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Configure frontend port mapping (before deploy)
+        env:
+          DOKKU_HOST: ${{ vars.DOKKU_HOST }}
+          DOKKU_FRONTEND_APP: ${{ vars.DOKKU_FRONTEND_APP }}
+        run: |
+          # Ensure port mapping exists before deploy
+          ssh dokku@$DOKKU_HOST ports:list $DOKKU_FRONTEND_APP > /dev/null 2>&1 || \
+          ssh dokku@$DOKKU_HOST ports:add $DOKKU_FRONTEND_APP http:80:3000
 
       - name: Create frontend tar archive
         run: |
@@ -117,15 +126,6 @@ jobs:
             echo "❌ Frontend deployment failed"
             exit $EXIT_CODE
           fi
-
-      - name: Configure frontend port mapping
-        env:
-          DOKKU_HOST: ${{ vars.DOKKU_HOST }}
-          DOKKU_FRONTEND_APP: ${{ vars.DOKKU_FRONTEND_APP }}
-        run: |
-          # Check if port mapping exists, if not add it
-          ssh dokku@$DOKKU_HOST ports:list $DOKKU_FRONTEND_APP > /dev/null 2>&1 || \
-          ssh dokku@$DOKKU_HOST ports:add $DOKKU_FRONTEND_APP http:80:3000
 
   verify-deployment:
     name: Verify Deployment

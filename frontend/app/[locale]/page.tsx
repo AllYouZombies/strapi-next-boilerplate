@@ -32,18 +32,27 @@ export default async function HomePage({ params }: Props) {
   // Fetch contact data from Strapi
   let contactData = null;
   try {
-    const res = await fetch(
-      `${process.env.STRAPI_URL}/api/contact?locale=${locale}`,
-      {
-        cache: 'force-cache',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+    // Skip fetch if STRAPI_URL is not defined (build time)
+    if (process.env.STRAPI_URL) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+
+      const res = await fetch(
+        `${process.env.STRAPI_URL}/api/contact?locale=${locale}`,
+        {
+          cache: 'force-cache',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          signal: controller.signal,
+        }
+      );
+      clearTimeout(timeoutId);
+
+      if (res.ok) {
+        const data = await res.json();
+        contactData = data.data;
       }
-    );
-    if (res.ok) {
-      const data = await res.json();
-      contactData = data.data;
     }
   } catch (error) {
     console.error('Failed to fetch contact data:', error);
@@ -52,18 +61,27 @@ export default async function HomePage({ params }: Props) {
   // Fetch main page content from Strapi
   let mainPageContent = null;
   try {
-    const res = await fetch(
-      `${process.env.STRAPI_URL}/api/main-page-content?locale=${locale}`,
-      {
-        cache: 'force-cache',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+    // Skip fetch if STRAPI_URL is not defined (build time)
+    if (process.env.STRAPI_URL) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+
+      const res = await fetch(
+        `${process.env.STRAPI_URL}/api/main-page-content?locale=${locale}`,
+        {
+          cache: 'force-cache',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          signal: controller.signal,
+        }
+      );
+      clearTimeout(timeoutId);
+
+      if (res.ok) {
+        const data = await res.json();
+        mainPageContent = data.data;
       }
-    );
-    if (res.ok) {
-      const data = await res.json();
-      mainPageContent = data.data;
     }
   } catch (error) {
     console.error('Failed to fetch main page content:', error);

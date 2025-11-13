@@ -2,4 +2,4 @@ WAIT=10
 TIMEOUT=60
 ATTEMPTS=10
 
-/_health status
+/admin/_health
