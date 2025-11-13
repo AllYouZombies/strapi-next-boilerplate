@@ -40,23 +40,44 @@ jobs:
           ssh dokku@${{ vars.DOKKU_HOST }} ports:add ${{ vars[matrix.app_var] }} http:80:${{ matrix.port }}
 
       - name: Create and deploy tar archive
+        shell: bash
         run: |
+          set +e  # Don't exit on error, we'll handle errors manually
+
           cd ${{ matrix.dir }}
           tar -czf ../${{ matrix.service }}.tar.gz ${{ matrix.exclude }} . 2>/dev/null || \
           tar -czf ../${{ matrix.service }}.tar.gz --exclude='node_modules' --exclude='.git' .
           cd ..
 
           # Deploy and capture output
-          OUTPUT=$(cat ${{ matrix.service }}.tar.gz | ssh dokku@${{ vars.DOKKU_HOST }} git:from-archive ${{ vars[matrix.app_var] }} -- 2>&1)
+          echo "🚀 Deploying ${{ matrix.service }}..."
+          OUTPUT=$(cat ${{ matrix.service }}.tar.gz | ssh dokku@${{ vars.DOKKU_HOST }} git:from-archive ${{ vars[matrix.app_var] }} -- 2>&1) || true
           echo "$OUTPUT"
 
           # Check if no changes detected and rebuild if necessary
           if echo "$OUTPUT" | grep -q "No changes detected"; then
             echo "⚠️  No changes detected, triggering rebuild..."
             ssh dokku@${{ vars.DOKKU_HOST }} ps:rebuild ${{ vars[matrix.app_var] }}
-            echo "✅ ${{ matrix.service }} rebuild completed"
-          else
+            if [ $? -eq 0 ]; then
+              echo "✅ ${{ matrix.service }} rebuild completed"
+              exit 0
+            else
+              echo "❌ ${{ matrix.service }} rebuild failed"
+              exit 1
+            fi
+          elif echo "$OUTPUT" | grep -q "Application deployed"; then
             echo "✅ ${{ matrix.service }} deployment completed"
+            exit 0
+          else
+            echo "⚠️  Unexpected output, checking if deployment succeeded..."
+            # Check if app is running
+            if ssh dokku@${{ vars.DOKKU_HOST }} ps:report ${{ vars[matrix.app_var] }} | grep -q "running"; then
+              echo "✅ ${{ matrix.service }} is running"
+              exit 0
+            else
+              echo "❌ ${{ matrix.service }} deployment may have failed"
+              exit 1
+            fi
           fi
 
   verify:
