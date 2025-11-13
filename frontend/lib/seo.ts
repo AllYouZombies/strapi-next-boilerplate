@@ -119,9 +119,12 @@ export function generateMetadata(locale: string): Metadata {
       },
     },
     verification: {
-      // Добавьте коды верификации после регистрации
-      // google: 'your-google-verification-code',
-      // yandex: 'your-yandex-verification-code',
+      ...(process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION && {
+        google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+      }),
+      ...(process.env.NEXT_PUBLIC_YANDEX_VERIFICATION && {
+        yandex: process.env.NEXT_PUBLIC_YANDEX_VERIFICATION,
+      }),
     },
   };
 }

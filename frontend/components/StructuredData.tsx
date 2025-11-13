@@ -2,9 +2,12 @@ import Script from 'next/script';
 
 type StructuredDataProps = {
   locale: string;
+  phoneNumber?: string;
+  telegramLink?: string;
+  address?: string;
 };
 
-export default function StructuredData({ locale }: StructuredDataProps) {
+export default function StructuredData({ locale, phoneNumber, telegramLink, address }: StructuredDataProps) {
   const businessData = {
     '@context': 'https://schema.org',
     '@type': 'LocalBusiness',
@@ -18,16 +21,18 @@ export default function StructuredData({ locale }: StructuredDataProps) {
         ? 'Toshkentda professional ichki dizayn va arxitektura loyihalash'
         : 'Professional interior design and architectural services in Tashkent',
     url: `https://home.uzb-dev.com/${locale}`,
-    telephone: '+998-XX-XXX-XX-XX', // Замените на реальный номер
+    ...(phoneNumber && { telephone: phoneNumber }),
     priceRange: '$$',
-    address: {
-      '@type': 'PostalAddress',
-      streetAddress: 'Your Street', // Замените на реальный адрес
-      addressLocality: 'Tashkent',
-      addressRegion: 'Tashkent',
-      postalCode: '100000',
-      addressCountry: 'UZ',
-    },
+    ...(address && {
+      address: {
+        '@type': 'PostalAddress',
+        streetAddress: address,
+        addressLocality: 'Tashkent',
+        addressRegion: 'Tashkent',
+        postalCode: '100000',
+        addressCountry: 'UZ',
+      },
+    }),
     geo: {
       '@type': 'GeoCoordinates',
       latitude: 41.2995,
@@ -41,11 +46,9 @@ export default function StructuredData({ locale }: StructuredDataProps) {
         closes: '18:00',
       },
     ],
-    sameAs: [
-      'https://www.instagram.com/ayda_design', // Замените на реальные соц. сети
-      'https://t.me/ayda_design',
-      'https://www.facebook.com/ayda.design',
-    ],
+    ...(telegramLink && {
+      sameAs: [telegramLink],
+    }),
     areaServed: {
       '@type': 'City',
       name: 'Tashkent',
@@ -105,18 +108,18 @@ export default function StructuredData({ locale }: StructuredDataProps) {
     name: 'Ayda Design Studio',
     url: 'https://home.uzb-dev.com',
     logo: 'https://home.uzb-dev.com/logo.svg',
-    contactPoint: {
-      '@type': 'ContactPoint',
-      telephone: '+998-XX-XXX-XX-XX', // Замените на реальный номер
-      contactType: 'customer service',
-      availableLanguage: ['Russian', 'Uzbek', 'English'],
-      areaServed: 'UZ',
-    },
-    sameAs: [
-      'https://www.instagram.com/ayda_design',
-      'https://t.me/ayda_design',
-      'https://www.facebook.com/ayda.design',
-    ],
+    ...(phoneNumber && {
+      contactPoint: {
+        '@type': 'ContactPoint',
+        telephone: phoneNumber,
+        contactType: 'customer service',
+        availableLanguage: ['Russian', 'Uzbek', 'English'],
+        areaServed: 'UZ',
+      },
+    }),
+    ...(telegramLink && {
+      sameAs: [telegramLink],
+    }),
   };
 
   const breadcrumbData = {

@@ -23,6 +23,7 @@ A production-ready full-stack boilerplate with Strapi 5 CMS (backend) and Next.j
 - ✅ **CI/CD with GitHub Actions** (parallel deployment)
 - ✅ **On-Demand Revalidation** (Strapi webhooks → Next.js)
 - ✅ **Multi-language support** (i18n with next-intl)
+- ✅ **SEO optimization** (metadata, Schema.org, sitemap, robots.txt)
 
 ## System Requirements
 
@@ -453,6 +454,96 @@ NEXT_PUBLIC_STRAPI_URL=http://localhost:1337
 ```
 
 See `.env.example` for all variables.
+
+## SEO Configuration
+
+The project includes comprehensive SEO optimization out of the box.
+
+### Features
+
+- ✅ **Localized metadata** with keywords for ru/uz/en
+- ✅ **Schema.org structured data** (LocalBusiness, Organization, BreadcrumbList)
+- ✅ **Dynamic sitemap.xml** for all locales
+- ✅ **robots.txt** with search engine rules
+- ✅ **hreflang tags** for multilingual support
+- ✅ **OpenGraph & Twitter Card** metadata
+- ✅ **Search engine verification** (Google, Yandex)
+
+### 1. Add Contact Data in Strapi
+
+The SEO structured data uses contact information from Strapi. Create a "Contact" collection type with:
+
+**Fields:**
+- `phone_number` (Text) - e.g., "+998901234567"
+- `telegram_link` (Text) - e.g., "https://t.me/your_username"
+- `address` (Text) - e.g., "Yunusabad District, Tashkent"
+- `email` (Email) - e.g., "info@example.com"
+
+**Important:** Enable **Public** access in Settings → Roles → Public → Contact (find + findOne).
+
+### 2. Search Engine Verification
+
+#### Google Search Console
+
+1. Go to https://search.google.com/search-console
+2. Add your domain property
+3. Copy the verification meta tag code (e.g., `abc123xyz`)
+4. Add to environment variables:
+
+**Dokku:**
+```bash
+ssh dokku@$DOKKU_HOST config:set home-frontend \
+  NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION=abc123xyz
+```
+
+**Local (.env.local):**
+```env
+NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION=abc123xyz
+```
+
+#### Yandex Webmaster
+
+1. Go to https://webmaster.yandex.com
+2. Add your site
+3. Copy the verification code
+4. Add to environment variables:
+
+**Dokku:**
+```bash
+ssh dokku@$DOKKU_HOST config:set home-frontend \
+  NEXT_PUBLIC_YANDEX_VERIFICATION=xyz456abc
+```
+
+**Local (.env.local):**
+```env
+NEXT_PUBLIC_YANDEX_VERIFICATION=xyz456abc
+```
+
+### 3. Verify SEO Setup
+
+After deployment, check:
+
+1. **Sitemap**: Visit `https://your-domain.com/sitemap.xml`
+2. **Robots**: Visit `https://your-domain.com/robots.txt`
+3. **Metadata**: View page source (Ctrl+U) and check `<meta>` tags
+4. **Structured Data**: Validate at https://validator.schema.org/
+
+### 4. Submit to Search Engines
+
+**Google:**
+- Submit sitemap in Google Search Console: `https://your-domain.com/sitemap.xml`
+- Wait 1-3 days for indexing
+
+**Yandex:**
+- Submit sitemap in Yandex Webmaster: `https://your-domain.com/sitemap.xml`
+- Wait 1-3 days for indexing
+
+### Files Reference
+
+- `frontend/lib/seo.ts` - Localized metadata and keywords
+- `frontend/components/StructuredData.tsx` - Schema.org JSON-LD
+- `frontend/app/sitemap.ts` - Sitemap generation
+- `frontend/app/robots.ts` - Robots.txt rules
 
 ## Troubleshooting (Local)
 

@@ -108,7 +108,12 @@ export default async function LocaleLayout({
   return (
     <html lang={locale}>
       <head>
-        <StructuredData locale={locale} />
+        <StructuredData
+          locale={locale}
+          phoneNumber={contactData?.phone_number}
+          telegramLink={contactData?.telegram_link}
+          address={contactData?.address}
+        />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${rubik.variable} antialiased flex flex-col min-h-screen`}
