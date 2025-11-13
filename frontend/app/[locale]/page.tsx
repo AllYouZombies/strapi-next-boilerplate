@@ -110,9 +110,8 @@ export default async function HomePage({ params }: Props) {
           {/* Hero Text */}
           <div className="relative z-10 text-center px-4 -mt-24">
             <h1
-              className="text-3xl md:text-5xl lg:text-6xl drop-shadow-lg leading-tight font-rubik"
+              className="text-3xl md:text-5xl lg:text-6xl leading-tight font-rubik font-light"
               style={{
-                fontWeight: 300,
                 color: '#2e2f33'
               }}
             >
