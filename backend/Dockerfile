@@ -8,7 +8,7 @@ WORKDIR /opt/app
 # Stage 2: dependencies - install dependencies
 FROM base AS dependencies
 COPY package.json package-lock.json ./
-RUN npm ci --only=production && npm cache clean --force
+RUN npm ci --omit=dev && npm cache clean --force
 COPY package.json package-lock.json ./
 RUN npm ci --only=development && npm cache clean --force
 
@@ -27,6 +27,7 @@ COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .
 ENV NODE_ENV=production
+ENV NODE_OPTIONS="--max-old-space-size=2048"
 RUN npm run build
 
 # Stage 5: production (default) - final production image
@@ -41,7 +42,16 @@ COPY --from=builder /opt/app/database ./database
 
 # Create non-root user for security
 RUN addgroup -g 1001 -S nodejs && adduser -S strapi -u 1001
+
+# Create necessary directories for Strapi runtime
+RUN mkdir -p /opt/app/.tmp \
+    /opt/app/.cache \
+    /opt/app/public/uploads \
+    /opt/app/database
+
+# Change ownership of all app files and directories
 RUN chown -R strapi:nodejs /opt/app
+
 USER strapi
 
 ENV NODE_ENV=production

@@ -11,9 +11,14 @@ dist
 .next
 out
 
+# Built archives
+*.tgz
+*.tar.gz
+
 # Environment
 .env
 .env*.local
+.env.production
 
 # Debug
 npm-debug.log*
@@ -28,6 +33,3 @@ yarn-error.log*
 # OS
 .DS_Store
 *.pem
-
-# Docker
-docker-compose.override.yml

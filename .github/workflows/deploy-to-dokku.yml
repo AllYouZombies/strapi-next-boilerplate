@@ -1,0 +1,121 @@
+name: Deploy to Dokku
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy-backend:
+    name: Deploy Backend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.9.1
+        with:
+          ssh-private-key: ${{ secrets.DOKKU_SSH_PRIVATE_KEY }}
+
+      - name: Add Dokku host to known hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ vars.DOKKU_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Create backend tar archive
+        run: |
+          cd backend
+          tar -czf ../backend-deploy.tar.gz \
+            --exclude='node_modules' \
+            --exclude='.git' \
+            --exclude='*.log' \
+            --exclude='.cache' \
+            --exclude='.tmp' \
+            --exclude='.strapi-updater.json' \
+            . 2>/dev/null || tar -czf ../backend-deploy.tar.gz \
+            --exclude='node_modules' \
+            --exclude='.git' \
+            --exclude='*.log' \
+            .
+          cd ..
+          ls -lh backend-deploy.tar.gz
+
+      - name: Deploy backend to Dokku
+        env:
+          DOKKU_HOST: ${{ vars.DOKKU_HOST }}
+          DOKKU_BACKEND_APP: ${{ vars.DOKKU_BACKEND_APP }}
+        run: |
+          cat backend-deploy.tar.gz | ssh dokku@$DOKKU_HOST git:from-archive $DOKKU_BACKEND_APP --
+
+  deploy-frontend:
+    name: Deploy Frontend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.9.1
+        with:
+          ssh-private-key: ${{ secrets.DOKKU_SSH_PRIVATE_KEY }}
+
+      - name: Add Dokku host to known hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ vars.DOKKU_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Create frontend tar archive
+        run: |
+          cd frontend
+          tar -czf ../frontend-deploy.tar.gz \
+            --exclude='node_modules' \
+            --exclude='.git' \
+            --exclude='*.log' \
+            --exclude='.next' \
+            .
+          cd ..
+          ls -lh frontend-deploy.tar.gz
+
+      - name: Deploy frontend to Dokku
+        env:
+          DOKKU_HOST: ${{ vars.DOKKU_HOST }}
+          DOKKU_FRONTEND_APP: ${{ vars.DOKKU_FRONTEND_APP }}
+        run: |
+          cat frontend-deploy.tar.gz | ssh dokku@$DOKKU_HOST git:from-archive $DOKKU_FRONTEND_APP --
+
+  verify-deployment:
+    name: Verify Deployment
+    runs-on: ubuntu-latest
+    needs: [deploy-backend, deploy-frontend]
+    steps:
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.9.1
+        with:
+          ssh-private-key: ${{ secrets.DOKKU_SSH_PRIVATE_KEY }}
+
+      - name: Add Dokku host to known hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ vars.DOKKU_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Check deployment status
+        env:
+          DOKKU_HOST: ${{ vars.DOKKU_HOST }}
+          DOKKU_BACKEND_APP: ${{ vars.DOKKU_BACKEND_APP }}
+          DOKKU_FRONTEND_APP: ${{ vars.DOKKU_FRONTEND_APP }}
+          BACKEND_DOMAIN: ${{ vars.BACKEND_DOMAIN }}
+          FRONTEND_DOMAIN: ${{ vars.FRONTEND_DOMAIN }}
+        run: |
+          echo "🔍 Checking backend status..."
+          ssh dokku@$DOKKU_HOST ps:report $DOKKU_BACKEND_APP | grep -E "Status|Running" || echo "Backend status check failed"
+
+          echo ""
+          echo "🔍 Checking frontend status..."
+          ssh dokku@$DOKKU_HOST ps:report $DOKKU_FRONTEND_APP | grep -E "Status|Running" || echo "Frontend status check failed"
+
+          echo ""
+          echo "✅ Deployment completed!"
+          echo "🌐 Backend:  https://$BACKEND_DOMAIN"
+          echo "🌐 Frontend: https://$FRONTEND_DOMAIN"

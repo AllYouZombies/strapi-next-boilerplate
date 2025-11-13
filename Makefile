@@ -1,4 +1,4 @@
-.PHONY: help .env up down restart logs build prod-build prod-up prod-down prod-logs prod-restart prod-clean
+.PHONY: help .env up down restart logs build prod-build prod-up prod-down prod-logs prod-restart prod-clean deploy-backend-tar deploy-frontend-tar deploy-backend deploy-frontend deploy-domains deploy-ssl deploy-status deploy-logs-backend deploy-logs-frontend deploy-all
 
 RED=\033[1;31m
 GREEN=\033[1;32m
@@ -19,13 +19,23 @@ help: ## Show this help message
 	@printf '%b\n' "  ${GREEN}make logs${NC}       - View development logs"
 	@printf '%b\n' "  ${GREEN}make build${NC}      - Rebuild development images"
 	@printf '%b\n' ""
-	@printf '%b\n' "${BOLD}${YELLOW}Production:${NC}"
+	@printf '%b\n' "${BOLD}${YELLOW}Production (Local Docker):${NC}"
 	@printf '%b\n' "  ${GREEN}make prod-build${NC}   - Build production images"
 	@printf '%b\n' "  ${GREEN}make prod-up${NC}      - Start production stack"
 	@printf '%b\n' "  ${GREEN}make prod-down${NC}    - Stop production stack"
 	@printf '%b\n' "  ${GREEN}make prod-logs${NC}    - View production logs"
 	@printf '%b\n' "  ${GREEN}make prod-restart${NC} - Restart production stack"
 	@printf '%b\n' "  ${GREEN}make prod-clean${NC}   - Clean production resources (images, volumes)"
+	@printf '%b\n' ""
+	@printf '%b\n' "${BOLD}${YELLOW}Dokku Deployment:${NC}"
+	@printf '%b\n' "  ${GREEN}make deploy-backend${NC}        - Deploy backend to Dokku"
+	@printf '%b\n' "  ${GREEN}make deploy-frontend${NC}       - Deploy frontend to Dokku"
+	@printf '%b\n' "  ${GREEN}make deploy-all${NC}            - Deploy everything (backend + frontend + domains + SSL)"
+	@printf '%b\n' "  ${GREEN}make deploy-domains${NC}        - Configure domains"
+	@printf '%b\n' "  ${GREEN}make deploy-ssl${NC}            - Setup SSL certificates"
+	@printf '%b\n' "  ${GREEN}make deploy-status${NC}         - Check deployment status"
+	@printf '%b\n' "  ${GREEN}make deploy-logs-backend${NC}   - View backend logs on Dokku"
+	@printf '%b\n' "  ${GREEN}make deploy-logs-frontend${NC}  - View frontend logs on Dokku"
 	@printf '%b\n' ""
 
 # Портативный inplace-SED: создаём .bak и удаляем после (GNU и BSD sed совместимы с -i.suf)
@@ -93,6 +103,7 @@ prod-build: .env
 		--build-arg NEXT_PUBLIC_STRAPI_URL=$$NEXT_PUBLIC_STRAPI_URL \
 		--build-arg NEXT_PUBLIC_DEFAULT_LOCALE=$$DEFAULT_LOCALE \
 		--build-arg NEXT_PUBLIC_AVAILABLE_LOCALES=$$AVAILABLE_LOCALES \
+		--build-arg STRAPI_URL=http://backend:1337 \
 		-t $(FRONTEND_IMAGE) ./frontend
 	@printf '%b\n' "${GREEN}${BOLD}✓ Production images built successfully${NC}"
 
@@ -179,3 +190,93 @@ prod-clean: prod-down
 	@docker rmi $(BACKEND_IMAGE) $(FRONTEND_IMAGE) 2>/dev/null || true
 	@docker volume rm postgres_prod_data 2>/dev/null || true
 	@printf '%b\n' "${GREEN}${BOLD}✓ Production resources cleaned${NC}"
+
+# Dokku deployment targets
+# Dokku deployment configuration
+# Override with environment variables: export DOKKU_HOST=your-host
+DOKKU_HOST?=31.130.147.156
+DOKKU_USER?=dokku
+DOKKU_BACKEND_APP?=home-backend
+DOKKU_FRONTEND_APP?=home-frontend
+BACKEND_DOMAIN?=home-admin.uzb-dev.com
+FRONTEND_DOMAIN?=home.uzb-dev.com
+
+deploy-backend-tar:
+	@printf '%b\n' "${BLUE}${BOLD}Creating backend tar archive...${NC}"
+	@cd backend && tar -czf ../backend-deploy.tar.gz \
+		--exclude='node_modules' \
+		--exclude='.git' \
+		--exclude='*.log' \
+		--exclude='.cache' \
+		--exclude='.tmp' \
+		--exclude='.strapi-updater.json' \
+		. 2>/dev/null
+	@printf '%b\n' "${GREEN}✓ Backend tar created ($(shell ls -lh backend-deploy.tar.gz | awk '{print $$5}'))${NC}"
+
+deploy-frontend-tar:
+	@printf '%b\n' "${BLUE}${BOLD}Creating frontend tar archive...${NC}"
+	@cd frontend && tar -czf ../frontend-deploy.tar.gz \
+		--exclude='node_modules' \
+		--exclude='.git' \
+		--exclude='*.log' \
+		--exclude='.next' \
+		. 2>/dev/null
+	@printf '%b\n' "${GREEN}✓ Frontend tar created ($(shell ls -lh frontend-deploy.tar.gz | awk '{print $$5}'))${NC}"
+
+deploy-backend: deploy-backend-tar
+	@printf '%b\n' "${BLUE}${BOLD}Deploying backend to Dokku...${NC}"
+	@cat backend-deploy.tar.gz | ssh $(DOKKU_USER)@$(DOKKU_HOST) git:from-archive $(DOKKU_BACKEND_APP) --
+	@printf '%b\n' "${GREEN}${BOLD}✓ Backend deployed successfully${NC}"
+
+deploy-frontend: deploy-frontend-tar
+	@printf '%b\n' "${BLUE}${BOLD}Deploying frontend to Dokku...${NC}"
+	@cat frontend-deploy.tar.gz | ssh $(DOKKU_USER)@$(DOKKU_HOST) git:from-archive $(DOKKU_FRONTEND_APP) --
+	@printf '%b\n' "${GREEN}${BOLD}✓ Frontend deployed successfully${NC}"
+
+deploy-ports:
+	@printf '%b\n' "${BLUE}${BOLD}Configuring port mappings...${NC}"
+	@ssh $(DOKKU_USER)@$(DOKKU_HOST) ports:list $(DOKKU_BACKEND_APP) > /dev/null 2>&1 || ssh $(DOKKU_USER)@$(DOKKU_HOST) ports:add $(DOKKU_BACKEND_APP) http:80:1337
+	@ssh $(DOKKU_USER)@$(DOKKU_HOST) ports:list $(DOKKU_FRONTEND_APP) > /dev/null 2>&1 || ssh $(DOKKU_USER)@$(DOKKU_HOST) ports:add $(DOKKU_FRONTEND_APP) http:80:3000
+	@printf '%b\n' "${GREEN}${BOLD}✓ Port mappings configured${NC}"
+
+deploy-domains:
+	@printf '%b\n' "${BLUE}${BOLD}Configuring domains...${NC}"
+	@ssh $(DOKKU_USER)@$(DOKKU_HOST) domains:add $(DOKKU_BACKEND_APP) $(BACKEND_DOMAIN) 2>/dev/null || true
+	@ssh $(DOKKU_USER)@$(DOKKU_HOST) domains:add $(DOKKU_FRONTEND_APP) $(FRONTEND_DOMAIN) 2>/dev/null || true
+	@printf '%b\n' "${GREEN}${BOLD}✓ Domains configured${NC}"
+
+deploy-ssl:
+	@printf '%b\n' "${BLUE}${BOLD}Setting up SSL certificates...${NC}"
+	@ssh $(DOKKU_USER)@$(DOKKU_HOST) letsencrypt:enable $(DOKKU_BACKEND_APP) || true
+	@ssh $(DOKKU_USER)@$(DOKKU_HOST) letsencrypt:enable $(DOKKU_FRONTEND_APP) || true
+	@printf '%b\n' "${GREEN}${BOLD}✓ SSL certificates configured${NC}"
+
+deploy-status:
+	@printf '%b\n' "${BLUE}${BOLD}Dokku deployment status:${NC}"
+	@printf '%b\n' ""
+	@printf '%b\n' "${YELLOW}Backend ($(DOKKU_BACKEND_APP)):${NC}"
+	@ssh $(DOKKU_USER)@$(DOKKU_HOST) ps:report $(DOKKU_BACKEND_APP) | grep -E "Status|Running" || true
+	@printf '%b\n' ""
+	@printf '%b\n' "${YELLOW}Frontend ($(DOKKU_FRONTEND_APP)):${NC}"
+	@ssh $(DOKKU_USER)@$(DOKKU_HOST) ps:report $(DOKKU_FRONTEND_APP) | grep -E "Status|Running" || true
+	@printf '%b\n' ""
+	@printf '%b\n' "${GREEN}URLs:${NC}"
+	@printf '%b\n' "  Backend:  https://$(BACKEND_DOMAIN)"
+	@printf '%b\n' "  Frontend: https://$(FRONTEND_DOMAIN)"
+
+deploy-logs-backend:
+	@printf '%b\n' "${BLUE}${BOLD}Backend logs (Ctrl+C to exit):${NC}"
+	@ssh $(DOKKU_USER)@$(DOKKU_HOST) logs $(DOKKU_BACKEND_APP) --tail
+
+deploy-logs-frontend:
+	@printf '%b\n' "${BLUE}${BOLD}Frontend logs (Ctrl+C to exit):${NC}"
+	@ssh $(DOKKU_USER)@$(DOKKU_HOST) logs $(DOKKU_FRONTEND_APP) --tail
+
+deploy-all: deploy-backend deploy-frontend deploy-ports deploy-domains deploy-ssl
+	@printf '%b\n' ""
+	@printf '%b\n' "${GREEN}${BOLD}✓✓✓ Full deployment completed successfully! ✓✓✓${NC}"
+	@printf '%b\n' ""
+	@printf '%b\n' "${BLUE}Access your applications:${NC}"
+	@printf '%b\n' "  ${GREEN}Frontend: https://$(FRONTEND_DOMAIN)${NC}"
+	@printf '%b\n' "  ${GREEN}Backend:  https://$(BACKEND_DOMAIN)${NC}"
+	@printf '%b\n' ""

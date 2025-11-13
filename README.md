@@ -12,13 +12,17 @@ A production-ready full-stack boilerplate with Strapi 5 CMS (backend) and Next.j
 
 ## Features
 
-- Multi-stage Docker builds for development and production
-- Hot-reload in development mode for both frontend and backend
-- PostgreSQL with persistent volumes
-- TypeScript support
-- CORS configured for frontend-backend communication
-- Health checks for all services
-- Security: non-root users, environment variables
+- ✅ Multi-stage Docker builds for development and production
+- ✅ Hot-reload in development mode for both frontend and backend
+- ✅ PostgreSQL with persistent volumes
+- ✅ TypeScript support
+- ✅ CORS configured for frontend-backend communication
+- ✅ Health checks for all services
+- ✅ Security: non-root users, environment variables
+- ✅ **Dokku deployment support** with Makefile commands
+- ✅ **CI/CD with GitHub Actions** (parallel deployment)
+- ✅ **On-Demand Revalidation** (Strapi webhooks → Next.js)
+- ✅ **Multi-language support** (i18n with next-intl)
 
 ## System Requirements
 
@@ -87,444 +91,339 @@ docker compose logs -f frontend
    - Go to **Settings** → **Users & Permissions Plugin** → **Roles** → **Public**
    - Enable public access to endpoints as needed
 
-## Content Revalidation Strategy
+## Content Revalidation
 
-This project uses **On-Demand Revalidation** to update Next.js pages when content changes in Strapi.
+Uses **On-Demand Revalidation** (not ISR). Strapi webhooks → Next.js cache invalidation.
 
-**⚠️ Important: We do NOT use ISR (Incremental Static Regeneration).**
+**Already configured.** To customize:
 
-When you update content in Strapi, it automatically triggers a webhook that invalidates the Next.js cache for affected pages.
-
-**See [REVALIDATION.md](./REVALIDATION.md) for detailed documentation.**
-
-### Quick Setup for Revalidation
-
-The revalidation system is already configured in this boilerplate with a generated secret. To customize:
-
-1. Generate a strong secret:
 ```bash
+# Generate secret
 openssl rand -base64 32
-```
 
-2. Update in both `.env` files:
-```bash
-# Root .env (for Strapi)
+# Update .env
 NEXTJS_URL=http://frontend:3000
-REVALIDATION_SECRET=your_generated_secret
+REVALIDATION_SECRET=your_secret
 ENABLE_WEBHOOKS=true
 
-# Frontend: frontend/.env.local
-REVALIDATION_SECRET=your_generated_secret
-```
+# Update frontend/.env.local
+REVALIDATION_SECRET=your_secret
 
-3. Restart services:
-```bash
+# Restart and test
 docker compose restart
-```
-
-4. Test by editing content in Strapi Admin Panel and checking logs:
-```bash
 docker compose logs -f frontend backend
 ```
 
-You should see:
-```
-backend   | [Webhooks] ✅ Revalidated Next.js for product update
-frontend  | [Revalidation] ✅ Revalidated /products/your-slug
-```
+**See [REVALIDATION.md](./REVALIDATION.md) for details.**
 
 ## Internationalization (i18n)
 
-This project supports **3 languages** out of the box:
-- 🇷🇺 **Russian (ru)** - Default
-- 🇺🇿 **Uzbek (uz)** - O'zbekcha
-- 🇬🇧 **English (en)**
+**Supported:** Russian (ru), Uzbek (uz), English (en)
+**URL format:** `/ru/`, `/uz/`, `/en/`
 
-**Key Features:**
-- ✅ Locale-based URL routing (`/ru/`, `/uz/`, `/en/`)
-- ✅ Language switcher component (top-right corner)
-- ✅ Localized UI translations via next-intl
-- ✅ Localized content from Strapi i18n plugin
-- ✅ SEO-optimized with hreflang tags
-- ✅ Automatic cache revalidation for all locales
-
-**See [I18N.md](./I18N.md) for complete documentation.**
-
-### Quick i18n Guide
-
-**URL Structure:**
-```
-http://localhost:3000/ru          → Russian home page
-http://localhost:3000/uz          → Uzbek home page
-http://localhost:3000/en          → English home page
-http://localhost:3000/ru/products → Russian products
-```
-
-**Using Translations in Components:**
-
-Server Components:
+**Usage:**
 ```typescript
+// Server components
 import { getTranslations } from 'next-intl/server';
-
 const t = await getTranslations('common');
-<button>{t('addToCart')}</button>
-```
 
-Client Components:
-```typescript
+// Client components
 'use client';
 import { useTranslations } from 'next-intl';
-
 const t = useTranslations('common');
-<button>{t('addToCart')}</button>
+
+// Fetch from Strapi
+fetch(`${process.env.STRAPI_URL}/api/products?locale=${locale}&populate=*`)
 ```
 
-**Fetching Localized Content:**
-```typescript
-// Always include locale parameter when fetching from Strapi
-const res = await fetch(
-  `${process.env.STRAPI_URL}/api/products?locale=${locale}&populate=*`,
-  { cache: 'force-cache' }
-);
-```
+**See [I18N.md](./I18N.md) for details.**
 
-## Development Workflow
-
-### Hot-Reload
-
-Both frontend and backend support hot-reload in development mode:
-
-- **Frontend**: Changes to files in `frontend/` automatically refresh the browser
-- **Backend**: Changes to files in `backend/` automatically restart Strapi
-
-### Rebuild After Dependencies Change
+## Development Commands
 
 ```bash
-# Rebuild after adding npm packages
-docker compose up -d --build
+# View logs
+docker compose logs -f               # All services
+docker compose logs -f backend       # Backend only
 
-# Or rebuild specific service
-docker compose up -d --build backend
-docker compose up -d --build frontend
-```
+# Rebuild after package changes
+docker compose up -d --build         # All services
+docker compose up -d --build backend # Backend only
 
-### Stop Services
+# Stop services
+docker compose down      # Keep data
+docker compose down -v   # Remove data
 
-```bash
-# Stop containers (keep data)
-docker compose down
-
-# Stop and remove all data (including database)
-docker compose down -v
-```
-
-### View Container Logs
-
-```bash
-# All services
-docker compose logs -f
-
-# Specific service
-docker compose logs -f backend
-docker compose logs -f postgres
-```
-
-### Execute Commands in Container
-
-```bash
-# Backend shell
+# Execute commands in container
 docker compose exec backend sh
-
-# Frontend shell
 docker compose exec frontend sh
-
-# Database shell
 docker compose exec postgres psql -U strapi -d strapi
 ```
 
-## Production Build
+**Hot-reload** enabled for both frontend and backend.
 
-Docker Compose is for **development only**. For production, build images separately:
+## Production Build (Local)
 
-### Using Makefile (Recommended)
-
-The easiest way to build and run production images locally:
+Test production build locally before deploying to Dokku:
 
 ```bash
-# Build production images
-make prod-build
+make prod-build    # Build production images
+make prod-up       # Start all services (Postgres, backend, frontend)
+make prod-logs     # View logs
+make prod-down     # Stop services
+make prod-clean    # Remove images and volumes
+```
 
-# Start production stack (automatically creates network, starts all containers)
-make prod-up
+**Note:** Makefile loads `.env`, creates network, passes build args automatically.
 
+## Dokku Deployment
+
+Deploy to Dokku using tar archives (monorepo-compatible).
+
+### Server Setup (One-Time)
+
+**Set environment variables:**
+```bash
+export DOKKU_HOST=<dokku-host>
+export BACKEND_DOMAIN=home-admin.example.com
+export FRONTEND_DOMAIN=home.example.com
+```
+
+**1. Create Dokku apps:**
+```bash
+ssh dokku@$DOKKU_HOST apps:create home-backend
+ssh dokku@$DOKKU_HOST apps:create home-frontend
+```
+
+**2. Install required Dokku plugins:**
+```bash
+# PostgreSQL
+ssh root@$DOKKU_HOST "sudo dokku plugin:install https://github.com/dokku/dokku-postgres.git"
+
+# Let's Encrypt for SSL
+ssh root@$DOKKU_HOST "sudo dokku plugin:install https://github.com/dokku/dokku-letsencrypt.git"
+
+# Verify installation
+ssh root@$DOKKU_HOST "dokku plugin:list" | grep -E "postgres|letsencrypt"
+```
+
+**3. Create and link database:**
+```bash
+ssh dokku@$DOKKU_HOST postgres:create home-db
+ssh dokku@$DOKKU_HOST postgres:link home-db home-backend
+```
+
+**4. Configure backend environment:**
+```bash
+ssh dokku@$DOKKU_HOST config:set home-backend \
+  NODE_ENV=production \
+  DATABASE_CLIENT=postgres \
+  APP_KEYS="key1,key2,key3" \
+  API_TOKEN_SALT="$(openssl rand -base64 32)" \
+  ADMIN_JWT_SECRET="$(openssl rand -base64 32)" \
+  TRANSFER_TOKEN_SALT="$(openssl rand -base64 32)" \
+  JWT_SECRET="$(openssl rand -base64 32)" \
+  ENCRYPTION_KEY="$(openssl rand -base64 32)" \
+  REVALIDATION_SECRET="$(openssl rand -base64 32)" \
+  NEXTJS_URL=https://$FRONTEND_DOMAIN \
+  ENABLE_WEBHOOKS=true \
+  DEFAULT_LOCALE=ru \
+  AVAILABLE_LOCALES=ru,uz,en
+```
+
+**5. Configure frontend environment:**
+```bash
+ssh dokku@$DOKKU_HOST config:set home-frontend \
+  NODE_ENV=production \
+  NEXT_PUBLIC_STRAPI_URL=https://$BACKEND_DOMAIN \
+  STRAPI_URL=http://$BACKEND_DOMAIN \
+  REVALIDATION_SECRET="same_as_backend" \
+  NEXT_PUBLIC_DEFAULT_LOCALE=ru \
+  NEXT_PUBLIC_AVAILABLE_LOCALES=ru,uz,en
+```
+
+**6. Configure port mappings:**
+```bash
+ssh dokku@$DOKKU_HOST ports:add home-backend http:80:1337
+ssh dokku@$DOKKU_HOST ports:add home-frontend http:80:3000
+```
+
+**7. Setup domains:**
+```bash
+ssh dokku@$DOKKU_HOST domains:clear-global
+ssh dokku@$DOKKU_HOST domains:add home-backend $BACKEND_DOMAIN
+ssh dokku@$DOKKU_HOST domains:add home-frontend $FRONTEND_DOMAIN
+```
+
+**8. Create Docker network (for inter-app communication):**
+```bash
+ssh dokku@$DOKKU_HOST network:create dokku-network
+ssh dokku@$DOKKU_HOST network:set home-backend attach-post-deploy dokku-network
+ssh dokku@$DOKKU_HOST network:set home-frontend attach-post-deploy dokku-network
+```
+
+**9. Setup SSL (after first deployment):**
+```bash
+# Enable Let's Encrypt for both apps
+ssh dokku@$DOKKU_HOST letsencrypt:enable home-backend
+ssh dokku@$DOKKU_HOST letsencrypt:enable home-frontend
+
+# Configure auto-renewal (runs monthly)
+ssh dokku@$DOKKU_HOST letsencrypt:cron-job --add
+```
+
+### Deploy Commands
+
+**Set variables (or override Makefile defaults):**
+```bash
+export DOKKU_HOST=<dokku-host>
+export BACKEND_DOMAIN=home-admin.example.com
+export FRONTEND_DOMAIN=home.example.com
+```
+
+**Deploy:**
+```bash
+make deploy-all          # All at once
+make deploy-backend      # Backend only
+make deploy-frontend     # Frontend only
+make deploy-ports        # Port mappings
+make deploy-domains      # Domains
+```
+
+**Monitor:**
+```bash
+make deploy-status           # Status
+make deploy-logs-backend     # Backend logs
+make deploy-logs-frontend    # Frontend logs
+```
+
+### CI/CD with GitHub Actions
+
+**Setup (one-time):**
+
+Generate SSH key:
+```bash
+ssh-keygen -t ed25519 -C "github-actions@dokku" -f ~/.ssh/github_actions_dokku
+cat ~/.ssh/github_actions_dokku.pub | ssh root@$DOKKU_HOST "dokku ssh-keys:add github-actions"
+```
+
+Add to GitHub (**Settings → Secrets and variables → Actions**):
+
+**Secret:** `DOKKU_SSH_PRIVATE_KEY` (content of `~/.ssh/github_actions_dokku`)
+
+**Variables:** `DOKKU_HOST`, `DOKKU_BACKEND_APP`, `DOKKU_FRONTEND_APP`, `BACKEND_DOMAIN`, `FRONTEND_DOMAIN`
+
+Push to deploy:
+```bash
+git push origin main  # Auto-deploys
+```
+
+### Troubleshooting
+
+```bash
 # View logs
-make prod-logs
+ssh dokku@$DOKKU_HOST logs home-backend --tail
+ssh dokku@$DOKKU_HOST logs home-frontend --tail
 
-# Stop production stack
-make prod-down
+# Restart
+ssh dokku@$DOKKU_HOST ps:restart home-backend
 
-# Restart production stack
-make prod-restart
+# Update env var
+ssh dokku@$DOKKU_HOST config:set home-backend KEY=value
 
-# Clean everything (images, volumes, network)
-make prod-clean
+# Check config
+ssh dokku@$DOKKU_HOST config home-backend
+ssh dokku@$DOKKU_HOST domains:report home-backend
+ssh dokku@$DOKKU_HOST ports:list home-backend
+
+# Rebuild nginx
+ssh dokku@$DOKKU_HOST proxy:build-config home-backend
 ```
 
-The Makefile automatically:
-- Loads environment variables from `.env`
-- Creates Docker network for container communication
-- Passes NEXT_PUBLIC_* variables as build args to frontend
-- Configures all environment variables correctly
-- Starts services in correct order (PostgreSQL → Backend → Frontend)
+### Common Issues
 
-### Manual Build (Advanced)
-
+**Backend uses SQLite instead of PostgreSQL:**
 ```bash
-# Build backend production image
-docker build -t my-strapi:latest ./backend
-
-# Build frontend production image with build args
-docker build \
-  --build-arg NEXT_PUBLIC_STRAPI_URL=http://localhost:1337 \
-  --build-arg NEXT_PUBLIC_DEFAULT_LOCALE=ru \
-  --build-arg NEXT_PUBLIC_AVAILABLE_LOCALES=ru,uz,en \
-  -t my-nextjs:latest ./frontend
+ssh dokku@$DOKKU_HOST config:set home-backend DATABASE_CLIENT=postgres
 ```
 
-By default, `docker build` creates production images (optimized, minimal size).
-
-### Manual Run (Advanced)
-
+**nginx shows default page:**
 ```bash
-# Create network
-docker network create strapi-next-prod
-
-# Run PostgreSQL
-docker run -d \
-  --name postgres \
-  --network strapi-next-prod \
-  -e POSTGRES_USER=strapi \
-  -e POSTGRES_PASSWORD=your_secure_password \
-  -e POSTGRES_DB=strapi \
-  -v postgres-data:/var/lib/postgresql/data \
-  postgres:18-alpine
-
-# Run Strapi backend
-docker run -d \
-  --name backend \
-  --network strapi-next-prod \
-  -p 1337:1337 \
-  --env-file .env \
-  -e DATABASE_HOST=postgres \
-  -e NEXTJS_URL=http://frontend:3000 \
-  my-strapi:latest
-
-# Run Next.js frontend
-docker run -d \
-  --name frontend \
-  --network strapi-next-prod \
-  -p 3000:3000 \
-  -e NEXT_PUBLIC_STRAPI_URL=http://localhost:1337 \
-  -e STRAPI_URL=http://backend:1337 \
-  -e REVALIDATION_SECRET=your_secret \
-  my-nextjs:latest
+ssh dokku@$DOKKU_HOST ports:list home-backend  # Check
+ssh dokku@$DOKKU_HOST ports:add home-backend http:80:1337  # Add if missing
 ```
 
-### Push to Registry
+**Frontend can't reach backend:**
+- Use public URL: `STRAPI_URL=http://$BACKEND_DOMAIN`
 
-```bash
-# Login to Docker Hub or your registry
-docker login
-
-# Tag images
-docker tag my-strapi:latest yourusername/strapi:1.0.0
-docker tag my-nextjs:latest yourusername/nextjs:1.0.0
-
-# Push images
-docker push yourusername/strapi:1.0.0
-docker push yourusername/nextjs:1.0.0
-```
-
-## Docker Architecture
-
-### Multi-Stage Builds
-
-Both `Dockerfile`s use multi-stage builds with separate targets:
-
-**Development Target** (`target: development`):
-- Used by `docker-compose.yml`
-- Includes dev dependencies
-- Hot-reload enabled
-- Volume mounts for live code changes
-
-**Production Target** (default):
-- Minimal image size
-- Only production dependencies
-- Optimized build output
-- Non-root user for security
-
-### Build Targets
-
-```bash
-# Build specific target
-docker build --target development -t my-app:dev .
-docker build --target production -t my-app:prod .
-
-# Default builds production
-docker build -t my-app:prod .
-```
+---
 
 ## Environment Variables
 
-See `.env.example` for all available variables.
+Generate secrets:
+```bash
+openssl rand -base64 32  # Run 6 times for Strapi secrets
+```
 
-### Required Variables
-
+Required in `.env`:
 ```env
 # Database
 POSTGRES_USER=strapi
-POSTGRES_PASSWORD=change_me_in_production
+POSTGRES_PASSWORD=secure_password
 POSTGRES_DB=strapi
 
-# Strapi (generate with: openssl rand -base64 32)
-APP_KEYS=required
-API_TOKEN_SALT=required
-ADMIN_JWT_SECRET=required
-TRANSFER_TOKEN_SALT=required
-JWT_SECRET=required
-ENCRYPTION_KEY=required
+# Strapi
+APP_KEYS=generated_secret
+API_TOKEN_SALT=generated_secret
+ADMIN_JWT_SECRET=generated_secret
+TRANSFER_TOKEN_SALT=generated_secret
+JWT_SECRET=generated_secret
+ENCRYPTION_KEY=generated_secret
 
 # Frontend
 NEXT_PUBLIC_STRAPI_URL=http://localhost:1337
 ```
 
-## Troubleshooting
+See `.env.example` for all variables.
 
-### Port Already in Use
+## Troubleshooting (Local)
 
 ```bash
-# Check what's using port 3000 or 1337
+# Port in use
 lsof -i :3000
 lsof -i :1337
 
-# Stop conflicting services or change ports in docker-compose.yml
-```
-
-### Database Connection Issues
-
-```bash
-# Check if PostgreSQL is healthy
-docker compose ps
-
-# View PostgreSQL logs
+# Database issues
 docker compose logs postgres
+docker compose down -v && docker compose up -d
 
-# Recreate database volume
-docker compose down -v
-docker compose up -d
-```
-
-### Permission Errors
-
-```bash
-# Fix ownership (if needed)
-sudo chown -R $USER:$USER backend frontend
-```
-
-### Fresh Start
-
-```bash
 # Complete reset
 docker compose down -v
 docker system prune -a
 docker compose up -d --build
 ```
 
-## Security Notes
+## Strapi Usage
 
-1. **Never commit `.env` to git** - it's already in `.gitignore`
-2. **Generate strong secrets** for production using `openssl rand -base64 32`
-3. **Change default passwords** in `.env` before deploying
-4. **Use HTTPS** in production (configure reverse proxy like Nginx)
-5. **Update dependencies** regularly for security patches
+**Create content type:**
+1. Open http://localhost:1337/admin → **Content-Type Builder**
+2. Create Collection Type, add fields, save
+3. Add content in **Content Manager**
+4. Set permissions: **Settings → Roles → Public**
 
-## Package Updates
+**Fetch from frontend:**
+```typescript
+const res = await fetch(`${process.env.STRAPI_URL}/api/articles?locale=${locale}&populate=*`);
+const { data } = await res.json();
+```
+
+## Updates
 
 ```bash
-# Update backend dependencies
 cd backend && npm update
-
-# Update frontend dependencies
 cd frontend && npm update
-
-# Rebuild containers
 docker compose up -d --build
 ```
 
-## API Usage Example
-
-### Frontend Integration
-
-The boilerplate includes an example in `frontend/app/page.tsx`:
-
-```typescript
-const response = await fetch(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api`);
-const data = await response.json();
-```
-
-### Create Content Type in Strapi
-
-1. Go to **Content-Type Builder** in Strapi admin
-2. Create a new Collection Type (e.g., "Article")
-3. Add fields
-4. Save and restart Strapi (automatic in dev mode)
-5. Add content in **Content Manager**
-6. Set permissions in **Settings** → **Roles**
-
-### Fetch Data from Frontend
-
-```typescript
-const response = await fetch('http://localhost:1337/api/articles?populate=*');
-const { data } = await response.json();
-```
-
-## Performance
-
-### Development Mode
-
-- Frontend: ~50MB RAM, instant hot-reload
-- Backend: ~150MB RAM, auto-restart on changes
-- Total: ~300MB RAM for full stack
-
-### Production Mode
-
-- Frontend: Next.js standalone ~200-300MB image
-- Backend: Strapi optimized ~300-400MB image
-- Minimal dependencies, secure runtime
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test with `docker compose up`
-5. Submit a pull request
-
-## License
-
-MIT License - feel free to use for personal or commercial projects.
-
-## Support
-
-- [Strapi Documentation](https://docs.strapi.io/)
-- [Next.js Documentation](https://nextjs.org/docs)
-- [Docker Documentation](https://docs.docker.com/)
-
 ---
 
-**Built with**:
-- Strapi 5.30.1
-- Next.js 15.5
-- PostgreSQL 18
-- Node.js 22 LTS
-- Docker & Docker Compose
+**Stack:** Strapi 5.30.1, Next.js 15.5, PostgreSQL 18, Node.js 22, Docker
