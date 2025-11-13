@@ -35,7 +35,7 @@ export async function generateMetadata({
   const { locale } = await params;
 
   // Get base metadata from SEO config
-  const baseMetadata = generateSEOMetadata(locale);
+  const baseMetadata = await generateSEOMetadata(locale);
 
   // Add icons
   return {
