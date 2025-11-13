@@ -30,13 +30,13 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: 'any' },
-      { url: '/favicon-64.png', sizes: '64x64', type: 'image/png' },
-      { url: '/favicon-128.png', sizes: '128x128', type: 'image/png' },
-      { url: '/favicon-256.png', sizes: '256x256', type: 'image/png' },
+      { url: '/favicon-64-white.png', sizes: '64x64', type: 'image/png' },
+      { url: '/favicon-128-white.png', sizes: '128x128', type: 'image/png' },
+      { url: '/favicon-256-white.png', sizes: '256x256', type: 'image/png' },
     ],
     shortcut: ['/favicon.ico'],
     apple: [
-      { url: '/favicon-128.png', sizes: '128x128', type: 'image/png' },
+      { url: '/favicon-128-white.png', sizes: '128x128', type: 'image/png' },
     ],
   },
   openGraph: {
