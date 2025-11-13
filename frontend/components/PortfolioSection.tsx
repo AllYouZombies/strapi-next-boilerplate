@@ -86,18 +86,18 @@ export default function PortfolioSection({ items }: PortfolioSectionProps) {
           onTouchStart={() => setIsPaused(true)}
           onTouchEnd={() => setIsPaused(false)}
         >
-          <div className="flex gap-8 px-4 pb-8">
+          <div className="flex gap-16 px-4 py-12">
             {duplicatedItems.map((item, index) => (
               <div
                 key={`${item.id}-${index}`}
-                className="group relative flex-shrink-0 overflow-hidden rounded-3xl bg-gray-100 shadow-xl hover:shadow-2xl transition-all duration-500"
-                style={{ width: 'min(90vw, 1200px)', height: 'min(60vh, 675px)' }}
+                className="relative flex-shrink-0 overflow-hidden rounded-3xl bg-gray-100 shadow-xl hover:scale-105 transition-all duration-500"
+                style={{ width: 'min(81vw, 1080px)', height: 'min(54vh, 607.5px)' }}
               >
                 <Image
                   src={item.image.url}
                   alt={item.image.alternativeText || 'Portfolio image'}
                   fill
-                  className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  className="object-cover"
                   sizes="min(90vw, 1200px)"
                   priority={index < 3}
                 />

@@ -97,7 +97,7 @@ export default async function HomePage({ params }: Props) {
       const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
 
       const res = await fetch(
-        `${process.env.STRAPI_URL}/api/portfolio-items?populate=image`,
+        `${process.env.STRAPI_URL}/api/portfolio-items?populate=image&pagination[limit]=10`,
         {
           cache: 'force-cache',
           headers: {
