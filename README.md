@@ -250,7 +250,7 @@ ssh dokku@$DOKKU_HOST config:set home-backend \
 ssh dokku@$DOKKU_HOST config:set home-frontend \
   NODE_ENV=production \
   NEXT_PUBLIC_STRAPI_URL=https://$BACKEND_DOMAIN \
-  STRAPI_URL=http://$BACKEND_DOMAIN \
+  STRAPI_URL=https://$BACKEND_DOMAIN \
   REVALIDATION_SECRET="same_as_backend" \
   NEXT_PUBLIC_DEFAULT_LOCALE=ru \
   NEXT_PUBLIC_AVAILABLE_LOCALES=ru,uz,en
