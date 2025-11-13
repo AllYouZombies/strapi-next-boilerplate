@@ -127,10 +127,10 @@ export default function ServicesSection() {
                     {service.title}
                   </h3>
                   {/* Fixed height container for description */}
-                  <div className="h-20 relative overflow-hidden">
+                  <div className="h-28 relative overflow-hidden">
                     <p
                       className={`
-                        text-base md:text-lg font-light font-rubik
+                        text-base md:text-lg font-light font-rubik leading-relaxed
                         transition-opacity duration-500
                         absolute inset-0
                         ${
