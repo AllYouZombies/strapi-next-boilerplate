@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 
 type FooterProps = {
@@ -31,6 +32,17 @@ export default function Footer({ phoneNumber, telegramLink, email }: FooterProps
     <footer className="w-full mt-auto bg-[#2e2f33]">
       <div className="container mx-auto px-4 py-16">
         <div className="max-w-6xl mx-auto">
+          {/* Logo */}
+          <div className="mb-12">
+            <Image
+              src="/logo.svg"
+              alt="Ayda"
+              width={150}
+              height={50}
+              className="h-12 w-auto brightness-0 invert"
+            />
+          </div>
+
           {/* Contacts Block */}
           <div className="mb-12">
             <h3 className="text-2xl md:text-3xl font-light text-white mb-6 font-rubik">

@@ -25,8 +25,30 @@ const rubik = Rubik({
 });
 
 export const metadata: Metadata = {
-  title: "Next.js + Strapi Boilerplate",
-  description: "Full-stack application with Next.js and Strapi CMS",
+  title: "Ayda - Interior Design Studio",
+  description: "Professional interior design and architecture services in Uzbekistan",
+  icons: {
+    icon: [
+      { url: '/favicon-64.png', sizes: '64x64', type: 'image/png' },
+      { url: '/favicon-128.png', sizes: '128x128', type: 'image/png' },
+      { url: '/favicon-256.png', sizes: '256x256', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/favicon-128.png', sizes: '128x128', type: 'image/png' },
+    ],
+  },
+  openGraph: {
+    title: "Ayda - Interior Design Studio",
+    description: "Professional interior design and architecture services in Uzbekistan",
+    images: ['/social-og.png'],
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: "Ayda - Interior Design Studio",
+    description: "Professional interior design and architecture services in Uzbekistan",
+    images: ['/social-og.png'],
+  },
 };
 
 // Generate static params for all locales

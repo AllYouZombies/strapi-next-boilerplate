@@ -1,11 +1,16 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
 import LanguageSwitcher from './LanguageSwitcher';
 
 export default function Header() {
   const [hasBackground, setHasBackground] = useState(false);
   const [hasShadow, setHasShadow] = useState(false);
+  const params = useParams();
+  const locale = params.locale as string;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -43,7 +48,20 @@ export default function Header() {
         hasBackground ? 'bg-[#f7f6f3]' : 'bg-transparent'
       }`}
     >
-      <div className="container mx-auto px-4 py-4 flex justify-end items-center">
+      <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+        {/* Logo */}
+        <Link href={`/${locale}`} className="flex items-center">
+          <Image
+            src="/logo.svg"
+            alt="Ayda"
+            width={120}
+            height={40}
+            priority
+            className="h-10 w-auto"
+          />
+        </Link>
+
+        {/* Language Switcher */}
         <LanguageSwitcher />
       </div>
     </header>

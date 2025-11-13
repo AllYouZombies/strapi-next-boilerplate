@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800" height="800" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+    <!-- AYDA Logo - Forward Accent -->
+    <defs>
+        <style>
+            .dark { fill: #111827; }
+            .green { fill: #10b981; }
+        </style>
+    </defs>
+    
+    <!-- Left leg of A -->
+    <polygon class="dark" points="60,170 75,170 95,50 80,50"/>
+    
+    <!-- Right leg of A -->
+    <polygon class="dark" points="140,170 125,170 105,50 120,50"/>
+    
+    <!-- Green crossbar -->
+    <rect class="green" x="60" y="105" width="80" height="20" rx="5"/>
+    
+    <!-- Forward accent (rotated rectangle) -->
+    <rect class="green" x="145" y="40" width="8" height="40" rx="4" transform="rotate(25 149 60)"/>
+</svg>
