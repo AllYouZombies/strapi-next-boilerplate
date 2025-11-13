@@ -275,9 +275,9 @@ ssh dokku@$DOKKU_HOST letsencrypt:cron-job --add
 
 **Set variables (or override Makefile defaults):**
 ```bash
-export DOKKU_HOST=<dokku-host>
-export BACKEND_DOMAIN=home-admin.example.com
-export FRONTEND_DOMAIN=home.example.com
+export DOKKU_HOST=31.130.147.156
+export BACKEND_DOMAIN=home-admin.uzb-dev.com
+export FRONTEND_DOMAIN=home.uzb-dev.com
 ```
 
 **Deploy:**
@@ -314,8 +314,12 @@ Add to GitHub (**Settings → Secrets and variables → Actions**):
 
 Push to deploy:
 ```bash
-git push origin main  # Auto-deploys
+git push origin main  # Auto-deploys (includes port mappings)
 ```
+
+**Notes:**
+- Workflow automatically configures port mappings on first deploy
+- If no code changes detected, deployment is marked as successful (no rebuild needed)
 
 ### Troubleshooting
 

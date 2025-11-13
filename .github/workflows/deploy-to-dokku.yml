@@ -47,7 +47,28 @@ jobs:
           DOKKU_HOST: ${{ vars.DOKKU_HOST }}
           DOKKU_BACKEND_APP: ${{ vars.DOKKU_BACKEND_APP }}
         run: |
-          cat backend-deploy.tar.gz | ssh dokku@$DOKKU_HOST git:from-archive $DOKKU_BACKEND_APP --
+          set +e
+          OUTPUT=$(cat backend-deploy.tar.gz | ssh dokku@$DOKKU_HOST git:from-archive $DOKKU_BACKEND_APP -- 2>&1)
+          EXIT_CODE=$?
+          echo "$OUTPUT"
+
+          # Success if deployed or no changes detected
+          if [ $EXIT_CODE -eq 0 ] || echo "$OUTPUT" | grep -q "No changes detected"; then
+            echo "✅ Backend deployment completed"
+            exit 0
+          else
+            echo "❌ Backend deployment failed"
+            exit $EXIT_CODE
+          fi
+
+      - name: Configure backend port mapping
+        env:
+          DOKKU_HOST: ${{ vars.DOKKU_HOST }}
+          DOKKU_BACKEND_APP: ${{ vars.DOKKU_BACKEND_APP }}
+        run: |
+          # Check if port mapping exists, if not add it
+          ssh dokku@$DOKKU_HOST ports:list $DOKKU_BACKEND_APP > /dev/null 2>&1 || \
+          ssh dokku@$DOKKU_HOST ports:add $DOKKU_BACKEND_APP http:80:1337
 
   deploy-frontend:
     name: Deploy Frontend
@@ -83,7 +104,28 @@ jobs:
           DOKKU_HOST: ${{ vars.DOKKU_HOST }}
           DOKKU_FRONTEND_APP: ${{ vars.DOKKU_FRONTEND_APP }}
         run: |
-          cat frontend-deploy.tar.gz | ssh dokku@$DOKKU_HOST git:from-archive $DOKKU_FRONTEND_APP --
+          set +e
+          OUTPUT=$(cat frontend-deploy.tar.gz | ssh dokku@$DOKKU_HOST git:from-archive $DOKKU_FRONTEND_APP -- 2>&1)
+          EXIT_CODE=$?
+          echo "$OUTPUT"
+
+          # Success if deployed or no changes detected
+          if [ $EXIT_CODE -eq 0 ] || echo "$OUTPUT" | grep -q "No changes detected"; then
+            echo "✅ Frontend deployment completed"
+            exit 0
+          else
+            echo "❌ Frontend deployment failed"
+            exit $EXIT_CODE
+          fi
+
+      - name: Configure frontend port mapping
+        env:
+          DOKKU_HOST: ${{ vars.DOKKU_HOST }}
+          DOKKU_FRONTEND_APP: ${{ vars.DOKKU_FRONTEND_APP }}
+        run: |
+          # Check if port mapping exists, if not add it
+          ssh dokku@$DOKKU_HOST ports:list $DOKKU_FRONTEND_APP > /dev/null 2>&1 || \
+          ssh dokku@$DOKKU_HOST ports:add $DOKKU_FRONTEND_APP http:80:3000
 
   verify-deployment:
     name: Verify Deployment
