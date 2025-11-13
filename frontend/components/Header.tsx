@@ -49,15 +49,15 @@ export default function Header() {
       }`}
     >
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-        {/* Logo */}
-        <Link href={`/${locale}`} className="flex items-center">
+        {/* Logo Icon */}
+        <Link href={`/${locale}`} className="flex items-center hover:opacity-80 transition-opacity">
           <Image
-            src="/logo.svg"
+            src="/icon.svg"
             alt="Ayda"
-            width={120}
+            width={40}
             height={40}
             priority
-            className="h-10 w-auto"
+            className="h-10 w-10"
           />
         </Link>
 
