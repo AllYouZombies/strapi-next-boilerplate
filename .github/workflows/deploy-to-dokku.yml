@@ -45,7 +45,7 @@ jobs:
           tar -czf ../${{ matrix.service }}.tar.gz ${{ matrix.exclude }} . 2>/dev/null || \
           tar -czf ../${{ matrix.service }}.tar.gz --exclude='node_modules' --exclude='.git' .
           cd ..
-          cat ${{ matrix.service }}.tar.gz | ssh dokku@${{ vars.DOKKU_HOST }} git:from-archive ${{ vars[matrix.app_var] }} || true
+          cat ${{ matrix.service }}.tar.gz | ssh dokku@${{ vars.DOKKU_HOST }} git:from-archive ${{ vars[matrix.app_var] }} --
           echo "✅ ${{ matrix.service }} deployment completed"
 
   verify:
