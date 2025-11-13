@@ -57,13 +57,20 @@
     }
   },
   "contact": {
-    "heading": "Boshlashga tayyormisiz?",
-    "subheading": "Keling birga chiroyli narsa yaratamiz",
+    "heading": "Loyihangizni muhokama qilamizmi?",
+    "subheading": "Bepul maslahat va narx hisob-kitobini oling",
     "discussProject": "Loyihani muhokama qilish",
     "writeToTelegram": "Telegramda yozish"
   },
   "about": {
     "heading": "Biz haqimizda",
     "noContent": "Kompaniya haqida ma'lumot tez orada paydo bo'ladi"
+  },
+  "footer": {
+    "contacts": "Aloqa"
+  },
+  "portfolio": {
+    "heading": "Bizning ishlar",
+    "viewProject": "Loyihani ko'rish"
   }
 }

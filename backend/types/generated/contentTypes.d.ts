@@ -444,6 +444,7 @@ export interface ApiContactContact extends Struct.SingleTypeSchema {
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    email: Schema.Attribute.Email & Schema.Attribute.Required;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -495,6 +496,36 @@ export interface ApiMainPageContentMainPageContent
       'oneToMany',
       'api::main-page-content.main-page-content'
     >;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiPortfolioItemPortfolioItem
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'portfolio_items';
+  info: {
+    description: 'Portfolio images';
+    displayName: 'Portfolio Item';
+    pluralName: 'portfolio-items';
+    singularName: 'portfolio-item';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    image: Schema.Attribute.Media<'images'> & Schema.Attribute.Required;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::portfolio-item.portfolio-item'
+    > &
+      Schema.Attribute.Private;
     publishedAt: Schema.Attribute.DateTime;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
@@ -1014,6 +1045,7 @@ declare module '@strapi/strapi' {
       'admin::user': AdminUser;
       'api::contact.contact': ApiContactContact;
       'api::main-page-content.main-page-content': ApiMainPageContentMainPageContent;
+      'api::portfolio-item.portfolio-item': ApiPortfolioItemPortfolioItem;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;
       'plugin::i18n.locale': PluginI18NLocale;

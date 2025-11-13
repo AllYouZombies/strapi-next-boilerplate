@@ -57,13 +57,20 @@
     }
   },
   "contact": {
-    "heading": "Готовы начать?",
-    "subheading": "Айда сделаем что-то красивое вместе",
+    "heading": "Обсудим ваш проект?",
+    "subheading": "Получите бесплатную консультацию и расчёт стоимости",
     "discussProject": "Обсудить проект",
     "writeToTelegram": "Написать в Telegram"
   },
   "about": {
     "heading": "О нас",
     "noContent": "Информация о компании скоро появится"
+  },
+  "footer": {
+    "contacts": "Контакты"
+  },
+  "portfolio": {
+    "heading": "Наши работы",
+    "viewProject": "Смотреть проект"
   }
 }

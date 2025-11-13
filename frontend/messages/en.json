@@ -57,13 +57,20 @@
     }
   },
   "contact": {
-    "heading": "Ready to start?",
-    "subheading": "Let's do something beautiful together",
+    "heading": "Discuss your project?",
+    "subheading": "Get free consultation and cost estimate",
     "discussProject": "Discuss Project",
     "writeToTelegram": "Write to Telegram"
   },
   "about": {
     "heading": "About Us",
     "noContent": "Information about the company will appear soon"
+  },
+  "footer": {
+    "contacts": "Contacts"
+  },
+  "portfolio": {
+    "heading": "Our Work",
+    "viewProject": "View Project"
   }
 }

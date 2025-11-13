@@ -3,6 +3,7 @@ import { getTranslations } from 'next-intl/server';
 import Image from 'next/image';
 import AboutSection from '@/components/AboutSection';
 import ServicesSection from '@/components/ServicesSection';
+import PortfolioSection from '@/components/PortfolioSection';
 import ContactSection from '@/components/ContactSection';
 
 // Force dynamic rendering since we fetch from Strapi
@@ -87,6 +88,44 @@ export default async function HomePage({ params }: Props) {
     console.error('Failed to fetch main page content:', error);
   }
 
+  // Fetch portfolio items from Strapi (no localization)
+  let portfolioItems = null;
+  try {
+    // Skip fetch if STRAPI_URL is not defined (build time)
+    if (process.env.STRAPI_URL) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+
+      const res = await fetch(
+        `${process.env.STRAPI_URL}/api/portfolio-items?populate=image`,
+        {
+          cache: 'force-cache',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          signal: controller.signal,
+        }
+      );
+      clearTimeout(timeoutId);
+
+      if (res.ok) {
+        const data = await res.json();
+        portfolioItems = data.data?.map((item: any) => ({
+          id: item.id,
+          documentId: item.documentId,
+          image: {
+            url: process.env.STRAPI_URL + item.image.url,
+            alternativeText: item.image.alternativeText,
+            width: item.image.width,
+            height: item.image.height,
+          },
+        }));
+      }
+    }
+  } catch (error) {
+    console.error('Failed to fetch portfolio items:', error);
+  }
+
   return (
     <>
       <div className="relative w-full min-h-screen flex items-center justify-center overflow-hidden">
@@ -152,6 +191,9 @@ export default async function HomePage({ params }: Props) {
 
       {/* Services Section */}
       <ServicesSection />
+
+      {/* Portfolio Section */}
+      <PortfolioSection items={portfolioItems} />
 
       {/* Contact Section */}
       <ContactSection

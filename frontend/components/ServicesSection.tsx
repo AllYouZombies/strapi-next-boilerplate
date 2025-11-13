@@ -68,10 +68,10 @@ export default function ServicesSection() {
       <div className="max-w-7xl w-full grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16">
         {/* Left: Title and Description */}
         <div className="lg:col-span-4 flex flex-col justify-center">
-          <h2 className="text-4xl md:text-5xl font-light text-white mb-4 font-rubik">
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-light text-white mb-6 font-rubik">
             {t('heading')}
           </h2>
-          <p className="text-lg text-gray-300 font-light font-rubik">
+          <p className="text-lg md:text-xl text-gray-100 font-light font-rubik">
             {t('subheading')}
           </p>
         </div>
@@ -98,7 +98,7 @@ export default function ServicesSection() {
                 {/* Number */}
                 <div
                   className={`
-                    flex-shrink-0 w-12 h-12 rounded-full
+                    flex-shrink-0 w-14 h-14 rounded-full
                     flex items-center justify-center
                     text-2xl font-light transition-all duration-500
                     ${
@@ -115,7 +115,7 @@ export default function ServicesSection() {
                 <div className="flex-1 min-w-0">
                   <h3
                     className={`
-                      text-2xl font-light mb-2 font-rubik
+                      text-2xl md:text-3xl font-light mb-3 font-rubik
                       transition-colors duration-500
                       ${
                         index === activeIndex
@@ -130,12 +130,12 @@ export default function ServicesSection() {
                   <div className="h-20 relative overflow-hidden">
                     <p
                       className={`
-                        text-base font-light font-rubik
+                        text-base md:text-lg font-light font-rubik
                         transition-opacity duration-500
                         absolute inset-0
                         ${
                           index === activeIndex
-                            ? 'text-gray-300 opacity-100'
+                            ? 'text-gray-100 opacity-100'
                             : 'text-gray-600 opacity-0'
                         }
                       `}

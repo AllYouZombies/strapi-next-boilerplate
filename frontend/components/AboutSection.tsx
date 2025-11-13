@@ -22,7 +22,7 @@ export default function AboutSection({ content }: AboutSectionProps) {
 
         {/* Content */}
         <div className="prose prose-lg md:prose-xl max-w-none">
-          <p className="text-lg md:text-xl lg:text-2xl text-gray-700 font-light leading-relaxed font-rubik whitespace-pre-line">
+          <p className="text-xl md:text-2xl lg:text-3xl text-gray-800 font-light leading-relaxed font-rubik whitespace-pre-line">
             {displayContent}
           </p>
         </div>

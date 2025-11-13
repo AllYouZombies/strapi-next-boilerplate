@@ -51,6 +51,34 @@ export default async function LocaleLayout({
   // Get messages for the locale
   const messages = await getMessages({ locale });
 
+  // Fetch contact data from Strapi for footer
+  let contactData = null;
+  try {
+    if (process.env.STRAPI_URL) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+      const res = await fetch(
+        `${process.env.STRAPI_URL}/api/contact?locale=${locale}`,
+        {
+          cache: 'force-cache',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          signal: controller.signal,
+        }
+      );
+      clearTimeout(timeoutId);
+
+      if (res.ok) {
+        const data = await res.json();
+        contactData = data.data;
+      }
+    }
+  } catch (error) {
+    console.error('Failed to fetch contact data for footer:', error);
+  }
+
   return (
     <html lang={locale}>
       <body
@@ -62,7 +90,11 @@ export default async function LocaleLayout({
           <main className="flex-1">
             {children}
           </main>
-          <Footer />
+          <Footer
+            phoneNumber={contactData?.phone_number}
+            telegramLink={contactData?.telegram_link}
+            email={contactData?.email}
+          />
         </NextIntlClientProvider>
       </body>
     </html>

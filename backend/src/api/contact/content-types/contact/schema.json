@@ -22,6 +22,10 @@
       "type": "string",
       "required": true,
       "regex": "t\\.me\\/\\S+"
+    },
+    "email": {
+      "type": "email",
+      "required": true
     }
   }
 }

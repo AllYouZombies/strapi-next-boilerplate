@@ -85,6 +85,14 @@ export async function POST(request: NextRequest) {
         }
         break;
 
+      case 'portfolio-item':
+        // Portfolio items are shown on the home page
+        for (const locale of locales) {
+          revalidatePath(`/${locale}`);
+          console.log(`[Revalidation] ✅ Revalidated /${locale} (portfolio-item)`);
+        }
+        break;
+
       default:
         // Revalidate home page for all locales
         for (const locale of locales) {
