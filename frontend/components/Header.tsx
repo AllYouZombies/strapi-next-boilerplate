@@ -53,7 +53,7 @@ export default function Header() {
         <Link href={`/${locale}`} className="flex items-center hover:opacity-80 transition-opacity">
           <Image
             src="/icon.svg"
-            alt="Ayda"
+            alt="Ayda Design Studio - Interior Design Tashkent"
             width={40}
             height={40}
             priority

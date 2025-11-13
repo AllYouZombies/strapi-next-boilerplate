@@ -36,7 +36,7 @@ export default function Footer({ phoneNumber, telegramLink, email }: FooterProps
           <div className="mb-12">
             <Image
               src="/logo.svg"
-              alt="Ayda"
+              alt="Ayda Design Studio - Interior Design Tashkent"
               width={150}
               height={50}
               className="h-16 w-auto"

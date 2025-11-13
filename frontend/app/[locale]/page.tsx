@@ -135,7 +135,7 @@ export default async function HomePage({ params }: Props) {
           <div className="absolute left-0 top-[75%] -translate-y-1/2 -translate-x-1/2 z-0" style={{ opacity: 0.08 }}>
             <Image
               src="/monstera.png"
-              alt="Monstera Left"
+              alt=""
               width={400}
               height={600}
               className="object-cover"
@@ -147,7 +147,7 @@ export default async function HomePage({ params }: Props) {
           <div className="absolute right-0 top-[17%] -translate-y-1/2 translate-x-1/2 z-0" style={{ opacity: 0.08 }}>
             <Image
               src="/monstera.png"
-              alt="Monstera Right"
+              alt=""
               width={400}
               height={600}
               className="object-cover"
@@ -159,7 +159,7 @@ export default async function HomePage({ params }: Props) {
           <div className="absolute inset-0 flex items-center justify-center z-5 -mt-24">
             <Image
               src="/flower.svg"
-              alt="Flower"
+              alt=""
               width={800}
               height={800}
               className="object-contain w-full h-full max-w-4xl"

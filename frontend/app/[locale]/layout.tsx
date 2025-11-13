@@ -4,8 +4,10 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { locales, isValidLocale } from '@/src/i18n/request';
+import { generateMetadata as generateSEOMetadata } from '@/lib/seo';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import StructuredData from '@/components/StructuredData';
 import "../globals.css";
 
 const geistSans = Geist({
@@ -24,34 +26,34 @@ const rubik = Rubik({
   weight: ["300", "400", "500", "600", "700"],
 });
 
-export const metadata: Metadata = {
-  title: "Ayda - Interior Design Studio",
-  description: "Professional interior design and architecture services in Uzbekistan",
-  icons: {
-    icon: [
-      { url: '/favicon.ico', sizes: 'any' },
-      { url: '/favicon-64-white.png', sizes: '64x64', type: 'image/png' },
-      { url: '/favicon-128-white.png', sizes: '128x128', type: 'image/png' },
-      { url: '/favicon-256-white.png', sizes: '256x256', type: 'image/png' },
-    ],
-    shortcut: ['/favicon.ico'],
-    apple: [
-      { url: '/favicon-128-white.png', sizes: '128x128', type: 'image/png' },
-    ],
-  },
-  openGraph: {
-    title: "Ayda - Interior Design Studio",
-    description: "Professional interior design and architecture services in Uzbekistan",
-    images: ['/social-og.png'],
-    type: 'website',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: "Ayda - Interior Design Studio",
-    description: "Professional interior design and architecture services in Uzbekistan",
-    images: ['/social-og.png'],
-  },
-};
+// Generate dynamic metadata based on locale
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+
+  // Get base metadata from SEO config
+  const baseMetadata = generateSEOMetadata(locale);
+
+  // Add icons
+  return {
+    ...baseMetadata,
+    icons: {
+      icon: [
+        { url: '/favicon.ico', sizes: 'any' },
+        { url: '/favicon-64-white.png', sizes: '64x64', type: 'image/png' },
+        { url: '/favicon-128-white.png', sizes: '128x128', type: 'image/png' },
+        { url: '/favicon-256-white.png', sizes: '256x256', type: 'image/png' },
+      ],
+      shortcut: ['/favicon.ico'],
+      apple: [
+        { url: '/favicon-128-white.png', sizes: '128x128', type: 'image/png' },
+      ],
+    },
+  };
+}
 
 // Generate static params for all locales
 export function generateStaticParams() {
@@ -105,6 +107,9 @@ export default async function LocaleLayout({
 
   return (
     <html lang={locale}>
+      <head>
+        <StructuredData locale={locale} />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${rubik.variable} antialiased flex flex-col min-h-screen`}
         style={{ backgroundColor: '#f7f6f3' }}
