@@ -10,7 +10,4 @@ yarn-error.log
 .git
 .gitignore
 README.md
-dist
-build
 .tmp
-.strapi

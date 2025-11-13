@@ -63,10 +63,37 @@ docker compose exec postgres psql -U strapi -d strapi
 ```
 
 ### Production Builds
+
+**Using Makefile (Recommended):**
+```bash
+# Build production images
+make prod-build
+
+# Start production stack
+make prod-up
+
+# View production logs
+make prod-logs
+
+# Stop production stack
+make prod-down
+
+# Restart production stack
+make prod-restart
+
+# Clean everything (images, volumes, network)
+make prod-clean
+```
+
+**Manual (Advanced):**
 ```bash
 # Build production images (default target)
 docker build -t my-strapi:latest ./backend
-docker build -t my-nextjs:latest ./frontend
+docker build \
+  --build-arg NEXT_PUBLIC_STRAPI_URL=http://localhost:1337 \
+  --build-arg NEXT_PUBLIC_DEFAULT_LOCALE=ru \
+  --build-arg NEXT_PUBLIC_AVAILABLE_LOCALES=ru,uz,en \
+  -t my-nextjs:latest ./frontend
 
 # Build development target explicitly
 docker build --target development -t my-app:dev ./backend

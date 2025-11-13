@@ -25,6 +25,16 @@ FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+# Accept build arguments for Next.js public variables
+ARG NEXT_PUBLIC_STRAPI_URL
+ARG NEXT_PUBLIC_DEFAULT_LOCALE
+ARG NEXT_PUBLIC_AVAILABLE_LOCALES
+
+# Set environment variables from build args
+ENV NEXT_PUBLIC_STRAPI_URL=$NEXT_PUBLIC_STRAPI_URL
+ENV NEXT_PUBLIC_DEFAULT_LOCALE=$NEXT_PUBLIC_DEFAULT_LOCALE
+ENV NEXT_PUBLIC_AVAILABLE_LOCALES=$NEXT_PUBLIC_AVAILABLE_LOCALES
+
 # Enable standalone output for optimal image size
 # next.config.js must contain: output: 'standalone'
 ENV NEXT_TELEMETRY_DISABLED=1

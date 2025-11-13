@@ -246,24 +246,63 @@ docker compose exec postgres psql -U strapi -d strapi
 
 Docker Compose is for **development only**. For production, build images separately:
 
-### Build Production Images
+### Using Makefile (Recommended)
+
+The easiest way to build and run production images locally:
+
+```bash
+# Build production images
+make prod-build
+
+# Start production stack (automatically creates network, starts all containers)
+make prod-up
+
+# View logs
+make prod-logs
+
+# Stop production stack
+make prod-down
+
+# Restart production stack
+make prod-restart
+
+# Clean everything (images, volumes, network)
+make prod-clean
+```
+
+The Makefile automatically:
+- Loads environment variables from `.env`
+- Creates Docker network for container communication
+- Passes NEXT_PUBLIC_* variables as build args to frontend
+- Configures all environment variables correctly
+- Starts services in correct order (PostgreSQL → Backend → Frontend)
+
+### Manual Build (Advanced)
 
 ```bash
 # Build backend production image
 docker build -t my-strapi:latest ./backend
 
-# Build frontend production image
-docker build -t my-nextjs:latest ./frontend
+# Build frontend production image with build args
+docker build \
+  --build-arg NEXT_PUBLIC_STRAPI_URL=http://localhost:1337 \
+  --build-arg NEXT_PUBLIC_DEFAULT_LOCALE=ru \
+  --build-arg NEXT_PUBLIC_AVAILABLE_LOCALES=ru,uz,en \
+  -t my-nextjs:latest ./frontend
 ```
 
 By default, `docker build` creates production images (optimized, minimal size).
 
-### Run Production Images Locally
+### Manual Run (Advanced)
 
 ```bash
+# Create network
+docker network create strapi-next-prod
+
 # Run PostgreSQL
 docker run -d \
   --name postgres \
+  --network strapi-next-prod \
   -e POSTGRES_USER=strapi \
   -e POSTGRES_PASSWORD=your_secure_password \
   -e POSTGRES_DB=strapi \
@@ -273,16 +312,21 @@ docker run -d \
 # Run Strapi backend
 docker run -d \
   --name backend \
+  --network strapi-next-prod \
   -p 1337:1337 \
   --env-file .env \
-  --link postgres:postgres \
+  -e DATABASE_HOST=postgres \
+  -e NEXTJS_URL=http://frontend:3000 \
   my-strapi:latest
 
 # Run Next.js frontend
 docker run -d \
   --name frontend \
+  --network strapi-next-prod \
   -p 3000:3000 \
   -e NEXT_PUBLIC_STRAPI_URL=http://localhost:1337 \
+  -e STRAPI_URL=http://backend:1337 \
+  -e REVALIDATION_SECRET=your_secret \
   my-nextjs:latest
 ```
 

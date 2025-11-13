@@ -1,7 +1,7 @@
 # Multi-stage build for Strapi backend
 
 # Stage 1: base - common base image
-FROM node:24-alpine AS base
+FROM node:22-alpine AS base
 RUN apk update && apk add --no-cache build-base gcc autoconf automake zlib-dev libpng-dev vips-dev git > /dev/null 2>&1
 WORKDIR /opt/app
 
@@ -32,11 +32,12 @@ RUN npm run build
 # Stage 5: production (default) - final production image
 FROM base AS production
 COPY --from=dependencies /opt/app/node_modules ./node_modules
-COPY --from=builder /opt/app/dist ./dist
-COPY --from=builder /opt/app/build ./build
+COPY --from=builder /opt/app/dist/build ./build
+COPY --from=builder /opt/app/dist/config ./config
+COPY --from=builder /opt/app/dist/src ./src
 COPY --from=builder /opt/app/public ./public
 COPY --from=builder /opt/app/package.json ./package.json
-COPY --from=builder /opt/app/node_modules/.cache/strapi-plugin-content-manager ./node_modules/.cache/strapi-plugin-content-manager
+COPY --from=builder /opt/app/database ./database
 
 # Create non-root user for security
 RUN addgroup -g 1001 -S nodejs && adduser -S strapi -u 1001
