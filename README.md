@@ -206,13 +206,28 @@ ssh root@$DOKKU_HOST "sudo dokku plugin:install https://github.com/dokku/dokku-l
 ssh root@$DOKKU_HOST "dokku plugin:list" | grep -E "postgres|letsencrypt"
 ```
 
-**3. Create and link database:**
+**3. Configure persistent storage for media files:**
+```bash
+# CRITICAL: Without this, uploaded media files will be lost on every redeploy
+ssh dokku@$DOKKU_HOST storage:ensure-directory home-backend
+ssh dokku@$DOKKU_HOST storage:mount home-backend /var/lib/dokku/data/storage/home-backend/uploads:/opt/app/public/uploads
+
+# Fix permissions (required for Strapi to write files)
+# UID 1001 = strapi user, GID 65533 = nogroup
+ssh root@$DOKKU_HOST "chown -R 1001:65533 /var/lib/dokku/data/storage/home-backend/uploads"
+ssh root@$DOKKU_HOST "chmod -R 755 /var/lib/dokku/data/storage/home-backend/uploads"
+
+# Verify mount
+ssh dokku@$DOKKU_HOST storage:list home-backend
+```
+
+**4. Create and link database:**
 ```bash
 ssh dokku@$DOKKU_HOST postgres:create home-db
 ssh dokku@$DOKKU_HOST postgres:link home-db home-backend
 ```
 
-**4. Configure backend environment:**
+**6. Configure backend environment:**
 ```bash
 ssh dokku@$DOKKU_HOST config:set home-backend \
   NODE_ENV=production \
@@ -230,7 +245,7 @@ ssh dokku@$DOKKU_HOST config:set home-backend \
   AVAILABLE_LOCALES=ru,uz,en
 ```
 
-**5. Configure frontend environment:**
+**7. Configure frontend environment:**
 ```bash
 ssh dokku@$DOKKU_HOST config:set home-frontend \
   NODE_ENV=production \
@@ -241,27 +256,27 @@ ssh dokku@$DOKKU_HOST config:set home-frontend \
   NEXT_PUBLIC_AVAILABLE_LOCALES=ru,uz,en
 ```
 
-**6. Configure port mappings:**
+**8. Configure port mappings:**
 ```bash
 ssh dokku@$DOKKU_HOST ports:add home-backend http:80:1337
 ssh dokku@$DOKKU_HOST ports:add home-frontend http:80:3000
 ```
 
-**7. Setup domains:**
+**9. Setup domains:**
 ```bash
 ssh dokku@$DOKKU_HOST domains:clear-global
 ssh dokku@$DOKKU_HOST domains:add home-backend $BACKEND_DOMAIN
 ssh dokku@$DOKKU_HOST domains:add home-frontend $FRONTEND_DOMAIN
 ```
 
-**8. Create Docker network (for inter-app communication):**
+**10. Create Docker network (for inter-app communication):**
 ```bash
 ssh dokku@$DOKKU_HOST network:create dokku-network
 ssh dokku@$DOKKU_HOST network:set home-backend attach-post-deploy dokku-network
 ssh dokku@$DOKKU_HOST network:set home-frontend attach-post-deploy dokku-network
 ```
 
-**9. Setup SSL (after first deployment):**
+**11. Setup SSL (after first deployment):**
 ```bash
 # Enable Let's Encrypt for both apps
 ssh dokku@$DOKKU_HOST letsencrypt:enable home-backend
@@ -321,29 +336,78 @@ git push origin main  # Auto-deploys (includes port mappings)
 - Workflow automatically configures port mappings on first deploy
 - If no code changes detected, deployment is marked as successful (no rebuild needed)
 
-### Troubleshooting
+### Migrating Existing Media Files
+
+If you already have media files in a previous deployment:
 
 ```bash
-# View logs
+# 1. Enter backend container and create backup
+ssh dokku@$DOKKU_HOST enter home-backend web
+tar -czf /tmp/uploads-backup.tar.gz /opt/app/public/uploads
+exit
+
+# 2. Copy from container to local machine
+ssh dokku@$DOKKU_HOST ps:inspect home-backend | grep Id  # Get container ID
+ssh dokku@$DOKKU_HOST "docker cp <container-id>:/tmp/uploads-backup.tar.gz /tmp/"
+scp dokku@$DOKKU_HOST:/tmp/uploads-backup.tar.gz ./
+
+# 3. Upload and extract to persistent storage
+scp uploads-backup.tar.gz dokku@$DOKKU_HOST:/tmp/
+ssh dokku@$DOKKU_HOST "sudo mkdir -p /var/lib/dokku/data/storage/home-backend/uploads"
+ssh dokku@$DOKKU_HOST "sudo tar -xzf /tmp/uploads-backup.tar.gz -C /var/lib/dokku/data/storage/home-backend/uploads --strip-components=5"
+
+# 4. Fix permissions (UID 1001 = strapi user, GID 65533 = nogroup)
+ssh dokku@$DOKKU_HOST "sudo chown -R 1001:65533 /var/lib/dokku/data/storage/home-backend/uploads"
+ssh dokku@$DOKKU_HOST "sudo chmod -R 755 /var/lib/dokku/data/storage/home-backend/uploads"
+
+# 5. Restart backend
+ssh dokku@$DOKKU_HOST ps:restart home-backend
+```
+
+### Troubleshooting
+
+**View logs:**
+```bash
 ssh dokku@$DOKKU_HOST logs home-backend --tail
 ssh dokku@$DOKKU_HOST logs home-frontend --tail
+```
 
-# Restart
+**Restart services:**
+```bash
 ssh dokku@$DOKKU_HOST ps:restart home-backend
+ssh dokku@$DOKKU_HOST ps:restart home-frontend
+```
 
-# Update env var
-ssh dokku@$DOKKU_HOST config:set home-backend KEY=value
-
-# Check config
+**Check configuration:**
+```bash
 ssh dokku@$DOKKU_HOST config home-backend
 ssh dokku@$DOKKU_HOST domains:report home-backend
 ssh dokku@$DOKKU_HOST ports:list home-backend
-
-# Rebuild nginx
-ssh dokku@$DOKKU_HOST proxy:build-config home-backend
+ssh dokku@$DOKKU_HOST storage:list home-backend
 ```
 
 ### Common Issues
+
+**Media files disappear after redeploy:**
+```bash
+# Check if storage is mounted
+ssh dokku@$DOKKU_HOST storage:list home-backend
+
+# Should show:
+# /var/lib/dokku/data/storage/home-backend/uploads:/opt/app/public/uploads
+
+# If not mounted, mount it:
+ssh dokku@$DOKKU_HOST storage:mount home-backend /var/lib/dokku/data/storage/home-backend/uploads:/opt/app/public/uploads
+ssh dokku@$DOKKU_HOST ps:restart home-backend
+```
+
+**Permission errors when uploading:**
+```bash
+# UID 1001 = strapi user inside container, GID 65533 = nogroup
+ssh dokku@$DOKKU_HOST "sudo chown -R 1001:65533 /var/lib/dokku/data/storage/home-backend/uploads"
+ssh dokku@$DOKKU_HOST "sudo chmod -R 755 /var/lib/dokku/data/storage/home-backend/uploads"
+ssh dokku@$DOKKU_HOST ps:restart home-backend
+```
 
 **Backend uses SQLite instead of PostgreSQL:**
 ```bash
@@ -354,10 +418,11 @@ ssh dokku@$DOKKU_HOST config:set home-backend DATABASE_CLIENT=postgres
 ```bash
 ssh dokku@$DOKKU_HOST ports:list home-backend  # Check
 ssh dokku@$DOKKU_HOST ports:add home-backend http:80:1337  # Add if missing
+ssh dokku@$DOKKU_HOST proxy:build-config home-backend
 ```
 
 **Frontend can't reach backend:**
-- Use public URL: `STRAPI_URL=http://$BACKEND_DOMAIN`
+- Use public URL: `STRAPI_URL=https://$BACKEND_DOMAIN`
 
 ---
 

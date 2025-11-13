@@ -358,6 +358,40 @@ NEXT_PUBLIC_DEFAULT_LOCALE=ru
 NEXT_PUBLIC_AVAILABLE_LOCALES=ru,uz,en
 ```
 
+## Deployment to Dokku
+
+### Persistent Storage for Media Files
+
+**Critical:** Strapi stores uploaded media files in `/opt/app/public/uploads`. Without persistent storage, these files are lost after every redeploy.
+
+**Setup on Dokku server:**
+```bash
+# Create storage directory and mount it
+dokku storage:ensure-directory home-backend
+dokku storage:mount home-backend /var/lib/dokku/data/storage/home-backend/uploads:/opt/app/public/uploads
+
+# Fix permissions (CRITICAL: without this, Strapi cannot write files)
+# UID 1001 = strapi user inside container, GID 65533 = nogroup
+chown -R 1001:65533 /var/lib/dokku/data/storage/home-backend/uploads
+chmod -R 755 /var/lib/dokku/data/storage/home-backend/uploads
+
+# Restart backend
+dokku ps:restart home-backend
+
+# Verify mount
+dokku storage:list home-backend
+# Should show: /var/lib/dokku/data/storage/home-backend/uploads:/opt/app/public/uploads
+```
+
+**Note:** Frontend does NOT need persistent storage - media files are served directly from backend via `remotePatterns` in `next.config.ts`.
+
+See **README.md → Dokku Deployment** for complete setup guide including:
+- Initial server setup
+- Database configuration
+- SSL with Let's Encrypt
+- Migrating existing media files
+- Troubleshooting
+
 ## Common Issues
 
 ### Frontend Showing 404 on /api
@@ -386,6 +420,12 @@ lsof -i :1337
 # Either stop conflicting service or change ports in docker-compose.yml
 ```
 
+### Media Files Lost After Dokku Redeploy
+1. Check if persistent storage is mounted: `dokku storage:list home-backend`
+2. If not mounted, manually mount: `dokku storage:mount home-backend /var/lib/dokku/data/storage/home-backend/uploads:/opt/app/public/uploads && dokku ps:restart home-backend`
+3. To migrate existing files from old deployment, see "Migrating Existing Media Files" in README.md
+4. Fix permissions if needed: `sudo chown -R 1001:65533 /var/lib/dokku/data/storage/home-backend/uploads` (UID 1001 = strapi user)
+
 ## Key Files Reference
 
 - `docker-compose.yml` - Development environment configuration
@@ -400,7 +440,7 @@ lsof -i :1337
 
 ## Documentation Files
 
-- `README.md` - Main project documentation
+- `README.md` - Main project documentation (includes Dokku deployment guide)
 - `REVALIDATION.md` - Detailed On-Demand Revalidation guide
 - `I18N.md` - Comprehensive i18n guide with examples
 - `CLAUDE.md` - This file
