@@ -1,4 +1,4 @@
-.PHONY: .env
+.PHONY: .env up down restart logs build
 
 RED=\033[1;31m
 GREEN=\033[1;32m
@@ -33,3 +33,17 @@ endef
 		printf '%b\n' "${YELLOW}Файл .env уже существует, пропускаем создание${NC}"; \
 		echo ""; \
 	fi
+
+up: .env
+	@docker compose up -d
+
+down:
+	@docker compose down
+
+restart: down up
+
+logs:
+	@docker compose logs -f
+
+build:
+	@docker compose build --no-cache
