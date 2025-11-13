@@ -7,12 +7,24 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy-backend:
-    name: Deploy Backend
+  deploy:
+    name: Deploy ${{ matrix.service }}
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - service: backend
+            dir: backend
+            app_var: DOKKU_BACKEND_APP
+            port: 1337
+            exclude: "--exclude='node_modules' --exclude='.git' --exclude='*.log' --exclude='.cache' --exclude='.tmp' --exclude='.strapi-updater.json'"
+          - service: frontend
+            dir: frontend
+            app_var: DOKKU_FRONTEND_APP
+            port: 3000
+            exclude: "--exclude='node_modules' --exclude='.git' --exclude='*.log' --exclude='.next'"
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
+      - uses: actions/checkout@v5
 
       - name: Setup SSH
         uses: webfactory/ssh-agent@v0.9.1
@@ -20,144 +32,38 @@ jobs:
           ssh-private-key: ${{ secrets.DOKKU_SSH_PRIVATE_KEY }}
 
       - name: Add Dokku host to known hosts
-        run: |
-          mkdir -p ~/.ssh
-          ssh-keyscan -H ${{ vars.DOKKU_HOST }} >> ~/.ssh/known_hosts
+        run: ssh-keyscan -H ${{ vars.DOKKU_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Configure backend port mapping (before deploy)
-        env:
-          DOKKU_HOST: ${{ vars.DOKKU_HOST }}
-          DOKKU_BACKEND_APP: ${{ vars.DOKKU_BACKEND_APP }}
+      - name: Configure port mapping
         run: |
-          # Ensure port mapping exists before deploy
-          ssh dokku@$DOKKU_HOST ports:list $DOKKU_BACKEND_APP > /dev/null 2>&1 || \
-          ssh dokku@$DOKKU_HOST ports:add $DOKKU_BACKEND_APP http:80:1337
+          ssh dokku@${{ vars.DOKKU_HOST }} ports:list ${{ vars[matrix.app_var] }} > /dev/null 2>&1 || \
+          ssh dokku@${{ vars.DOKKU_HOST }} ports:add ${{ vars[matrix.app_var] }} http:80:${{ matrix.port }}
 
-      - name: Create backend tar archive
+      - name: Create and deploy tar archive
         run: |
-          cd backend
-          tar -czf ../backend-deploy.tar.gz \
-            --exclude='node_modules' \
-            --exclude='.git' \
-            --exclude='*.log' \
-            --exclude='.cache' \
-            --exclude='.tmp' \
-            --exclude='.strapi-updater.json' \
-            . 2>/dev/null || tar -czf ../backend-deploy.tar.gz \
-            --exclude='node_modules' \
-            --exclude='.git' \
-            --exclude='*.log' \
-            .
+          cd ${{ matrix.dir }}
+          tar -czf ../${{ matrix.service }}.tar.gz ${{ matrix.exclude }} . 2>/dev/null || \
+          tar -czf ../${{ matrix.service }}.tar.gz --exclude='node_modules' --exclude='.git' .
           cd ..
-          ls -lh backend-deploy.tar.gz
+          cat ${{ matrix.service }}.tar.gz | ssh dokku@${{ vars.DOKKU_HOST }} git:from-archive ${{ vars[matrix.app_var] }} || true
+          echo "✅ ${{ matrix.service }} deployment completed"
 
-      - name: Deploy backend to Dokku
-        env:
-          DOKKU_HOST: ${{ vars.DOKKU_HOST }}
-          DOKKU_BACKEND_APP: ${{ vars.DOKKU_BACKEND_APP }}
-        run: |
-          set +e
-          OUTPUT=$(cat backend-deploy.tar.gz | ssh dokku@$DOKKU_HOST git:from-archive $DOKKU_BACKEND_APP -- 2>&1)
-          EXIT_CODE=$?
-          echo "$OUTPUT"
-
-          # Success if deployed or no changes detected
-          if [ $EXIT_CODE -eq 0 ] || echo "$OUTPUT" | grep -q "No changes detected"; then
-            echo "✅ Backend deployment completed"
-            exit 0
-          else
-            echo "❌ Backend deployment failed"
-            exit $EXIT_CODE
-          fi
-
-  deploy-frontend:
-    name: Deploy Frontend
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
-
-      - name: Setup SSH
-        uses: webfactory/ssh-agent@v0.9.1
-        with:
-          ssh-private-key: ${{ secrets.DOKKU_SSH_PRIVATE_KEY }}
-
-      - name: Add Dokku host to known hosts
-        run: |
-          mkdir -p ~/.ssh
-          ssh-keyscan -H ${{ vars.DOKKU_HOST }} >> ~/.ssh/known_hosts
-
-      - name: Configure frontend port mapping (before deploy)
-        env:
-          DOKKU_HOST: ${{ vars.DOKKU_HOST }}
-          DOKKU_FRONTEND_APP: ${{ vars.DOKKU_FRONTEND_APP }}
-        run: |
-          # Ensure port mapping exists before deploy
-          ssh dokku@$DOKKU_HOST ports:list $DOKKU_FRONTEND_APP > /dev/null 2>&1 || \
-          ssh dokku@$DOKKU_HOST ports:add $DOKKU_FRONTEND_APP http:80:3000
-
-      - name: Create frontend tar archive
-        run: |
-          cd frontend
-          tar -czf ../frontend-deploy.tar.gz \
-            --exclude='node_modules' \
-            --exclude='.git' \
-            --exclude='*.log' \
-            --exclude='.next' \
-            .
-          cd ..
-          ls -lh frontend-deploy.tar.gz
-
-      - name: Deploy frontend to Dokku
-        env:
-          DOKKU_HOST: ${{ vars.DOKKU_HOST }}
-          DOKKU_FRONTEND_APP: ${{ vars.DOKKU_FRONTEND_APP }}
-        run: |
-          set +e
-          OUTPUT=$(cat frontend-deploy.tar.gz | ssh dokku@$DOKKU_HOST git:from-archive $DOKKU_FRONTEND_APP -- 2>&1)
-          EXIT_CODE=$?
-          echo "$OUTPUT"
-
-          # Success if deployed or no changes detected
-          if [ $EXIT_CODE -eq 0 ] || echo "$OUTPUT" | grep -q "No changes detected"; then
-            echo "✅ Frontend deployment completed"
-            exit 0
-          else
-            echo "❌ Frontend deployment failed"
-            exit $EXIT_CODE
-          fi
-
-  verify-deployment:
+  verify:
     name: Verify Deployment
     runs-on: ubuntu-latest
-    needs: [deploy-backend, deploy-frontend]
+    needs: deploy
     steps:
       - name: Setup SSH
         uses: webfactory/ssh-agent@v0.9.1
         with:
           ssh-private-key: ${{ secrets.DOKKU_SSH_PRIVATE_KEY }}
 
-      - name: Add Dokku host to known hosts
+      - name: Check status
         run: |
-          mkdir -p ~/.ssh
           ssh-keyscan -H ${{ vars.DOKKU_HOST }} >> ~/.ssh/known_hosts
-
-      - name: Check deployment status
-        env:
-          DOKKU_HOST: ${{ vars.DOKKU_HOST }}
-          DOKKU_BACKEND_APP: ${{ vars.DOKKU_BACKEND_APP }}
-          DOKKU_FRONTEND_APP: ${{ vars.DOKKU_FRONTEND_APP }}
-          BACKEND_DOMAIN: ${{ vars.BACKEND_DOMAIN }}
-          FRONTEND_DOMAIN: ${{ vars.FRONTEND_DOMAIN }}
-        run: |
-          echo "🔍 Checking backend status..."
-          ssh dokku@$DOKKU_HOST ps:report $DOKKU_BACKEND_APP | grep -E "Status|Running" || echo "Backend status check failed"
-
-          echo ""
-          echo "🔍 Checking frontend status..."
-          ssh dokku@$DOKKU_HOST ps:report $DOKKU_FRONTEND_APP | grep -E "Status|Running" || echo "Frontend status check failed"
-
-          echo ""
+          echo "🔍 Checking services..."
+          ssh dokku@${{ vars.DOKKU_HOST }} ps:report ${{ vars.DOKKU_BACKEND_APP }} | grep "Status"
+          ssh dokku@${{ vars.DOKKU_HOST }} ps:report ${{ vars.DOKKU_FRONTEND_APP }} | grep "Status"
           echo "✅ Deployment completed!"
-          echo "🌐 Backend:  https://$BACKEND_DOMAIN"
-          echo "🌐 Frontend: https://$FRONTEND_DOMAIN"
+          echo "🌐 Backend:  https://${{ vars.BACKEND_DOMAIN }}"
+          echo "🌐 Frontend: https://${{ vars.FRONTEND_DOMAIN }}"
