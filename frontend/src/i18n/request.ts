@@ -17,7 +17,7 @@ export function isValidLocale(locale: string): locale is Locale {
 export function getLocaleName(locale: Locale): string {
   const names: Record<Locale, string> = {
     ru: 'Русский',
-    uz: 'O\'zbekcha',
+    uz: 'O\'zbek',
     en: 'English',
   };
   return names[locale];
