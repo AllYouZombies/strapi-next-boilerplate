@@ -93,6 +93,22 @@ export async function POST(request: NextRequest) {
         }
         break;
 
+      case 'seo-setting':
+        // SEO settings affect all pages (metadata, structured data)
+        for (const locale of locales) {
+          revalidatePath(`/${locale}`, 'layout');
+          console.log(`[Revalidation] ✅ Revalidated /${locale} layout (seo-setting)`);
+        }
+        break;
+
+      case 'contact':
+        // Contact data affects footer and structured data on all pages
+        for (const locale of locales) {
+          revalidatePath(`/${locale}`, 'layout');
+          console.log(`[Revalidation] ✅ Revalidated /${locale} layout (contact)`);
+        }
+        break;
+
       default:
         // Revalidate home page for all locales
         for (const locale of locales) {

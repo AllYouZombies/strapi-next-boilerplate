@@ -5,21 +5,38 @@ type StructuredDataProps = {
   phoneNumber?: string;
   telegramLink?: string;
   address?: string;
+  siteName?: string;
+  businessDescription?: string;
+  services?: Array<{ name: string }>;
+  instagramUrl?: string;
+  facebookUrl?: string;
 };
 
-export default function StructuredData({ locale, phoneNumber, telegramLink, address }: StructuredDataProps) {
+export default function StructuredData({
+  locale,
+  phoneNumber,
+  telegramLink,
+  address,
+  siteName,
+  businessDescription,
+  services,
+  instagramUrl,
+  facebookUrl
+}: StructuredDataProps) {
+  // Build social media links array
+  const socialLinks = [
+    telegramLink,
+    instagramUrl,
+    facebookUrl,
+  ].filter(Boolean) as string[];
+
   const businessData = {
     '@context': 'https://schema.org',
     '@type': 'LocalBusiness',
     '@id': 'https://home.uzb-dev.com',
-    name: 'Ayda Design Studio',
+    name: siteName || 'My Business',
     image: 'https://home.uzb-dev.com/social-og.png',
-    description:
-      locale === 'ru'
-        ? 'Профессиональный дизайн интерьера и архитектурное проектирование в Ташкенте'
-        : locale === 'uz'
-        ? 'Toshkentda professional ichki dizayn va arxitektura loyihalash'
-        : 'Professional interior design and architectural services in Tashkent',
+    ...(businessDescription && { description: businessDescription }),
     url: `https://home.uzb-dev.com/${locale}`,
     ...(phoneNumber && { telephone: phoneNumber }),
     priceRange: '$$',
@@ -46,66 +63,32 @@ export default function StructuredData({ locale, phoneNumber, telegramLink, addr
         closes: '18:00',
       },
     ],
-    ...(telegramLink && {
-      sameAs: [telegramLink],
+    ...(socialLinks.length > 0 && {
+      sameAs: socialLinks,
     }),
     areaServed: {
       '@type': 'City',
       name: 'Tashkent',
     },
-    hasOfferCatalog: {
-      '@type': 'OfferCatalog',
-      name:
-        locale === 'ru'
-          ? 'Услуги дизайна интерьера'
-          : locale === 'uz'
-          ? 'Ichki dizayn xizmatlari'
-          : 'Interior Design Services',
-      itemListElement: [
-        {
+    ...(services && services.length > 0 && {
+      hasOfferCatalog: {
+        '@type': 'OfferCatalog',
+        name: locale === 'ru' ? 'Наши услуги' : locale === 'uz' ? 'Bizning xizmatlarimiz' : 'Our Services',
+        itemListElement: services.map(service => ({
           '@type': 'Offer',
           itemOffered: {
             '@type': 'Service',
-            name:
-              locale === 'ru'
-                ? 'Дизайн жилых помещений'
-                : locale === 'uz'
-                ? 'Turar-joy dizayni'
-                : 'Residential Design',
+            name: service.name,
           },
-        },
-        {
-          '@type': 'Offer',
-          itemOffered: {
-            '@type': 'Service',
-            name:
-              locale === 'ru'
-                ? 'Коммерческий дизайн'
-                : locale === 'uz'
-                ? 'Tijorat dizayni'
-                : 'Commercial Design',
-          },
-        },
-        {
-          '@type': 'Offer',
-          itemOffered: {
-            '@type': 'Service',
-            name:
-              locale === 'ru'
-                ? 'Архитектурное проектирование'
-                : locale === 'uz'
-                ? 'Arxitektura loyihalash'
-                : 'Architectural Design',
-          },
-        },
-      ],
-    },
+        })),
+      },
+    }),
   };
 
   const organizationData = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    name: 'Ayda Design Studio',
+    name: siteName || 'My Business',
     url: 'https://home.uzb-dev.com',
     logo: 'https://home.uzb-dev.com/logo.svg',
     ...(phoneNumber && {
@@ -117,8 +100,8 @@ export default function StructuredData({ locale, phoneNumber, telegramLink, addr
         areaServed: 'UZ',
       },
     }),
-    ...(telegramLink && {
-      sameAs: [telegramLink],
+    ...(socialLinks.length > 0 && {
+      sameAs: socialLinks,
     }),
   };
 

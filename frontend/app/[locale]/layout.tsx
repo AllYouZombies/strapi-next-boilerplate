@@ -105,6 +105,34 @@ export default async function LocaleLayout({
     console.error('Failed to fetch contact data for footer:', error);
   }
 
+  // Fetch SEO settings from Strapi
+  let seoData = null;
+  try {
+    if (process.env.STRAPI_URL) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+      const res = await fetch(
+        `${process.env.STRAPI_URL}/api/seo-setting?locale=${locale}`,
+        {
+          cache: 'force-cache',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          signal: controller.signal,
+        }
+      );
+      clearTimeout(timeoutId);
+
+      if (res.ok) {
+        const data = await res.json();
+        seoData = data.data;
+      }
+    }
+  } catch (error) {
+    console.error('Failed to fetch SEO settings:', error);
+  }
+
   return (
     <html lang={locale}>
       <head>
@@ -113,6 +141,11 @@ export default async function LocaleLayout({
           phoneNumber={contactData?.phone_number}
           telegramLink={contactData?.telegram_link}
           address={contactData?.address}
+          siteName={seoData?.site_name}
+          businessDescription={seoData?.business_description}
+          services={seoData?.services}
+          instagramUrl={seoData?.instagram_url}
+          facebookUrl={seoData?.facebook_url}
         />
       </head>
       <body

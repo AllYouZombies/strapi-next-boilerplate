@@ -1,75 +1,58 @@
 import { Metadata } from 'next';
 
-type LocaleSEO = {
-  title: string;
-  description: string;
-  keywords: string[];
+type SEOData = {
+  site_name: string;
+  meta_title: string;
+  meta_description: string;
+  meta_keywords?: string;
+  twitter_handle?: string;
 };
 
-const seoData: Record<string, LocaleSEO> = {
-  ru: {
-    title: 'Ayda - Дизайн интерьера в Ташкенте | Архитектура и ремонт',
-    description:
-      'Профессиональный дизайн интерьера и архитектурное проектирование в Ташкенте. ✓ Жилые и коммерческие помещения ✓ 3D визуализация ✓ Авторский надзор. Студия Ayda - создаем уникальные пространства.',
-    keywords: [
-      'дизайн интерьера Ташкент',
-      'архитектор Ташкент',
-      'ремонт квартир Ташкент',
-      'дизайн проект Узбекистан',
-      'интерьер дома Ташкент',
-      'коммерческий дизайн Ташкент',
-      '3D визуализация интерьера',
-      'студия дизайна Ayda',
-      'современный интерьер Ташкент',
-      'евроремонт Ташкент',
-    ],
-  },
-  uz: {
-    title: 'Ayda - Toshkentda ichki dizayn | Arxitektura va ta\'mir',
-    description:
-      'Toshkentda professional ichki dizayn va arxitektura loyihalash. ✓ Turar-joy va tijorat xonalari ✓ 3D vizualizatsiya ✓ Muallif nazorati. Ayda studiyasi - noyob makonlar yaratamiz.',
-    keywords: [
-      'ichki dizayn Toshkent',
-      'arxitektor Toshkent',
-      'kvartira ta\'miri Toshkent',
-      'dizayn loyihasi O\'zbekiston',
-      'uy interyeri Toshkent',
-      'tijorat dizayni Toshkent',
-      '3D vizualizatsiya',
-      'Ayda dizayn studiyasi',
-      'zamonaviy interer Toshkent',
-    ],
-  },
-  en: {
-    title: 'Ayda - Interior Design in Tashkent | Architecture & Renovation',
-    description:
-      'Professional interior design and architectural services in Tashkent, Uzbekistan. ✓ Residential & Commercial spaces ✓ 3D visualization ✓ Project supervision. Ayda Studio - creating unique spaces.',
-    keywords: [
-      'interior design Tashkent',
-      'architect Tashkent',
-      'apartment renovation Tashkent',
-      'design project Uzbekistan',
-      'home interior Tashkent',
-      'commercial design Tashkent',
-      '3D interior visualization',
-      'Ayda design studio',
-      'modern interior Tashkent',
-      'renovation Uzbekistan',
-    ],
-  },
-};
-
-export function generateMetadata(locale: string): Metadata {
-  const seo = seoData[locale] || seoData.en;
+export async function generateMetadata(locale: string): Promise<Metadata> {
   const baseUrl = process.env.NEXT_PUBLIC_STRAPI_URL?.replace('/api', '') || 'https://home.uzb-dev.com';
 
+  // Fetch SEO settings from Strapi
+  let seoData: SEOData | null = null;
+  try {
+    if (process.env.STRAPI_URL) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+      const res = await fetch(
+        `${process.env.STRAPI_URL}/api/seo-setting?locale=${locale}`,
+        {
+          cache: 'force-cache',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          signal: controller.signal,
+        }
+      );
+      clearTimeout(timeoutId);
+
+      if (res.ok) {
+        const data = await res.json();
+        seoData = data.data;
+      }
+    }
+  } catch (error) {
+    console.error('Failed to fetch SEO settings:', error);
+  }
+
+  // Fallback values if Strapi is not available
+  const siteName = seoData?.site_name || 'My Site';
+  const title = seoData?.meta_title || 'Welcome';
+  const description = seoData?.meta_description || 'Welcome to our website';
+  const keywords = seoData?.meta_keywords ? seoData.meta_keywords.split(',').map(k => k.trim()) : [];
+  const twitterHandle = seoData?.twitter_handle;
+
   return {
-    title: seo.title,
-    description: seo.description,
-    keywords: seo.keywords,
-    authors: [{ name: 'Ayda Design Studio' }],
-    creator: 'Ayda',
-    publisher: 'Ayda Design Studio',
+    title,
+    description,
+    ...(keywords.length > 0 && { keywords }),
+    authors: [{ name: siteName }],
+    creator: siteName,
+    publisher: siteName,
     formatDetection: {
       email: false,
       address: false,
@@ -85,16 +68,16 @@ export function generateMetadata(locale: string): Metadata {
       },
     },
     openGraph: {
-      title: seo.title,
-      description: seo.description,
+      title,
+      description,
       url: `${baseUrl}/${locale}`,
-      siteName: 'Ayda Design Studio',
+      siteName,
       images: [
         {
           url: '/social-og.png',
           width: 512,
           height: 512,
-          alt: 'Ayda Design Studio',
+          alt: siteName,
         },
       ],
       locale: locale === 'uz' ? 'uz_UZ' : locale === 'ru' ? 'ru_RU' : 'en_US',
@@ -102,10 +85,10 @@ export function generateMetadata(locale: string): Metadata {
     },
     twitter: {
       card: 'summary_large_image',
-      title: seo.title,
-      description: seo.description,
+      title,
+      description,
       images: ['/social-og.png'],
-      creator: '@ayda_design',
+      ...(twitterHandle && { creator: twitterHandle }),
     },
     robots: {
       index: true,

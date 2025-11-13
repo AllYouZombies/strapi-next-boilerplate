@@ -469,9 +469,39 @@ The project includes comprehensive SEO optimization out of the box.
 - ✅ **OpenGraph & Twitter Card** metadata
 - ✅ **Search engine verification** (Google, Yandex)
 
-### 1. Add Contact Data in Strapi
+### 1. Configure SEO Settings in Strapi
 
-The SEO structured data uses contact information from Strapi. Create a "Contact" collection type with:
+All SEO data is managed through Strapi CMS. After starting the backend, you'll find two content types in the admin panel:
+
+#### SEO Settings (Single Type)
+
+Go to **Content Manager → SEO Settings** and fill in:
+
+**Fields:**
+- `site_name` - Your company/website name (e.g., "Ayda Development")
+- `meta_title` - Page title for SEO (localized for ru/uz/en)
+- `meta_description` - Page description for SEO (localized)
+- `meta_keywords` - Comma-separated keywords (localized)
+  - Example (ru): "разработка сайтов, веб разработка Ташкент, создание сайтов"
+  - Example (en): "web development, website development Tashkent"
+- `business_description` - Brief business description for Schema.org (localized)
+- `services` - JSON array of your services (localized), example:
+  ```json
+  [
+    {"name": "Web Development"},
+    {"name": "Mobile Apps"},
+    {"name": "E-commerce Solutions"}
+  ]
+  ```
+- `instagram_url` - Instagram profile URL (optional)
+- `facebook_url` - Facebook page URL (optional)
+- `twitter_handle` - Twitter handle like "@yourcompany" (optional)
+
+**Permissions:** Settings → Roles → Public → SEO Settings (find)
+
+#### Contact (Single Type)
+
+Go to **Content Manager → Contact** and fill in:
 
 **Fields:**
 - `phone_number` (Text) - e.g., "+998901234567"
@@ -479,7 +509,9 @@ The SEO structured data uses contact information from Strapi. Create a "Contact"
 - `address` (Text) - e.g., "Yunusabad District, Tashkent"
 - `email` (Email) - e.g., "info@example.com"
 
-**Important:** Enable **Public** access in Settings → Roles → Public → Contact (find + findOne).
+**Permissions:** Settings → Roles → Public → Contact (find)
+
+**Note:** Both content types are created automatically from schema files in `backend/src/api/`.
 
 ### 2. Search Engine Verification
 
@@ -519,31 +551,33 @@ ssh dokku@$DOKKU_HOST config:set home-frontend \
 NEXT_PUBLIC_YANDEX_VERIFICATION=xyz456abc
 ```
 
-### 3. Verify SEO Setup
+### 3. Submit Sitemap and Verify SEO
 
-After deployment, check:
+**After deployment:**
 
-1. **Sitemap**: Visit `https://your-domain.com/sitemap.xml`
-2. **Robots**: Visit `https://your-domain.com/robots.txt`
-3. **Metadata**: View page source (Ctrl+U) and check `<meta>` tags
-4. **Structured Data**: Validate at https://validator.schema.org/
+1. **Verify files:**
+   - Sitemap: `https://your-domain.com/sitemap.xml`
+   - Robots: `https://your-domain.com/robots.txt`
+   - View page source (Ctrl+U) to check `<meta>` tags
+   - Validate Schema.org data at https://validator.schema.org/
 
-### 4. Submit to Search Engines
+2. **Submit to search engines:**
+   - **Google:** Submit sitemap in Google Search Console
+   - **Yandex:** Submit sitemap in Yandex Webmaster
+   - Wait 1-3 days for indexing
 
-**Google:**
-- Submit sitemap in Google Search Console: `https://your-domain.com/sitemap.xml`
-- Wait 1-3 days for indexing
+### Technical Reference
 
-**Yandex:**
-- Submit sitemap in Yandex Webmaster: `https://your-domain.com/sitemap.xml`
-- Wait 1-3 days for indexing
+**Backend:**
+- `backend/src/api/seo-setting/content-types/seo-setting/schema.json` - SEO Settings content type
+- `backend/src/index.ts` - Revalidation webhooks configuration
 
-### Files Reference
-
-- `frontend/lib/seo.ts` - Localized metadata and keywords
-- `frontend/components/StructuredData.tsx` - Schema.org JSON-LD
-- `frontend/app/sitemap.ts` - Sitemap generation
+**Frontend:**
+- `frontend/lib/seo.ts` - Fetches SEO data from Strapi and generates metadata
+- `frontend/components/StructuredData.tsx` - Schema.org JSON-LD structured data
+- `frontend/app/sitemap.ts` - Dynamic sitemap generation
 - `frontend/app/robots.ts` - Robots.txt rules
+- `frontend/app/api/revalidate/route.ts` - On-demand revalidation endpoint
 
 ## Troubleshooting (Local)
 
