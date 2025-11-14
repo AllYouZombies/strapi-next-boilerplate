@@ -30,6 +30,17 @@ const nextConfig: NextConfig = {
         hostname: strapiHostname,
         pathname: '/uploads/**',
       },
+      // Explicitly support punycode domain (айда.uz = xn--80aalt.uz)
+      {
+        protocol: 'https',
+        hostname: 'admin.xn--80aalt.uz',
+        pathname: '/uploads/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'xn--80aalt.uz',
+        pathname: '/uploads/**',
+      },
     ],
   },
 };
